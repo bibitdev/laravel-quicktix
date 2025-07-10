@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    container_name: quicktix
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      APP_KEY: base64:1VsNoW9NCZIxHTR2phhDknnh/icwGqP+JMZYY2Khjak=
+      MISTRAL_API_TOKEN: Ae1bLsGBfyb6IPjuQoQGEnkqnci4pNjq
+      MISTRAL_MODEL: mistral-small-latest
+      MAIL_MAILER: smtp
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: cukbujang@gmail.com
+      MAIL_PASSWORD: "qpyi wklk azzo dswt"
+      MAIL_FROM_ADDRESS: "no-reply@gmail.com"
+      MAIL_FROM_NAME: "${APP_NAME}"
+      MAIL_ENCRYPTION: tls
+    ports:
+      - "7151:8080"
+    volumes:
+      - quicktix_storage:/var/www/html/storage
+    depends_on:
+      - db
+    networks:
+      - quicktix_network
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db_quicktix
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laraveluser
+      MYSQL_PASSWORD: laravelpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - quicktix_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_quicktix
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: secret
+    ports:
+      - "1295:80"
+    depends_on:
+      - db
+    networks:
+      - quicktix_network
+
+networks:
+  quicktix_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  quicktix_storage:
