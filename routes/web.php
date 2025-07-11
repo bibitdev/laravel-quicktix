@@ -14,7 +14,7 @@ Route::get('/', function () {
 });
 
 // Login & logout
-Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Protected routes
