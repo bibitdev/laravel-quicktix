@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 // Halaman login (GET /)
 Route::get('/', function () {
     return view('pages.auth.login');
-})->name('login'); // nama route ini 'login' untuk form login
+})->name('login.page'); // nama route ini 'login' untuk form login
 
 // Proses login & logout
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');

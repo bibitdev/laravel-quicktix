@@ -13,6 +13,9 @@ class Transaction extends Model
 
     protected $fillable = [
         'amount',
+        'payment_method',
+        'transaction_time',
+        'cashier_id',
         'created_at',
         'updated_at'
     ];

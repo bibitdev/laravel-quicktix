@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaction;
-use PDF; // pastikan sudah install barryvdh/laravel-dompdf
+use PDF;
 use Illuminate\Support\Facades\Storage;
-use QrCode;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
@@ -15,7 +17,6 @@ class TransactionController extends Controller
     {
         $transactions = Transaction::orderBy('created_at', 'desc')->get();
 
-        // Recap Bulanan
         $recap = Transaction::selectRaw('MONTH(created_at) as month, COUNT(*) as total_transactions, SUM(amount) as total_amount')
             ->groupBy('month')
             ->get();
@@ -47,13 +48,21 @@ class TransactionController extends Controller
             'cashier_id' => $request->cashier_id,
         ]);
 
-        // Data untuk QR (cashier_id#transaction_time)
-        $qrData = $transaction->cashier_id . '#' . $transaction->transaction_time;
+        // QR content
+        $qrContent = $transaction->cashier_id . '#' . Carbon::parse($transaction->transaction_time)->format('Y-m-d H:i:s');
 
-        // Generate & simpan QR code
-        QrCode::format('png')
-            ->size(200)
-            ->generate($qrData, storage_path('app/public/qr/' . $transaction->id . '.png'));
+        // QR options
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+            'eccLevel'   => QRCode::ECC_L,
+            'scale'      => 5,
+        ]);
+
+        // Path QR image
+        $qrPath = storage_path('app/public/qr/' . $transaction->id . '.png');
+
+        // Generate QR dan simpan
+        (new QRCode($options))->render($qrContent, $qrPath);
 
         // Generate PDF
         $pdf = PDF::loadView('pages.pdf.receipt', [
@@ -62,20 +71,18 @@ class TransactionController extends Controller
             'transaction_time' => $transaction->transaction_time,
         ]);
 
-        // Simpan PDF sementara
-        $pdfPath = storage_path('app/public/pdf/receipt_' . $transaction->id . '.pdf');
-        $pdf->save($pdfPath);
+        // Simpan PDF
+        $pdfPath = 'pdf/receipt_' . $transaction->id . '.pdf';
+        Storage::disk('public')->put($pdfPath, $pdf->output());
 
-        // Kirim URL PDF ke frontend
         return response()->json([
-            'pdf_url' => asset('storage/pdf/receipt_' . $transaction->id . '.pdf')
+            'pdf_url' => asset('storage/' . $pdfPath),
         ]);
     }
 
     // Download PDF recap bulanan
     public function downloadRecap($month)
     {
-        // Ambil data recap bulan tertentu
         $recapData = Transaction::selectRaw('MONTH(created_at) as month, COUNT(*) as total_transactions, SUM(amount) as total_amount')
             ->whereMonth('created_at', $month)
             ->groupBy('month')
@@ -85,7 +92,6 @@ class TransactionController extends Controller
             return abort(404, 'Data recap tidak ditemukan.');
         }
 
-        // Generate PDF dari view
         $pdf = PDF::loadView('pages.pdf.recap', compact('recapData', 'month'));
 
         return $pdf->download("recap-bulanan-{$month}.pdf");
