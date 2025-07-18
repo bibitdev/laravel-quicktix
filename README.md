@@ -64,3 +64,18 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+
+# Laravel WisataKu Backend
+
+## Cara install dan jalankan
+1. Jalankan `composer install` untuk install dependency PHP.
+2. Jalankan `npm install && npm run dev` untuk asset front-end (kalau ada).
+3. Copy file `.env.example` menjadi `.env` dan sesuaikan konfigurasi database, dsb.
+4. Jalankan `php artisan key:generate` untuk generate app key.
+5. Jalankan migration (kalau ada): `php artisan migrate`.
+6. Jalankan server lokal: `php artisan serve`.
+
+

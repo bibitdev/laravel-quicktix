@@ -12,8 +12,8 @@ Route::get('/', function () {
     return view('pages.auth.login');
 })->name('login.page'); // nama route ini 'login' untuk form login
 
-// Proses login & logout
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+// Login & logout
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Protected routes (hanya untuk user yang sudah login)

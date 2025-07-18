@@ -43,4 +43,4 @@ Route::post('/transactions', [TransactionController::class, 'store']);
 // Kirim data, generate pdf, dan kirim ke email / balikin link pdf
 Route::post('/transactions/print', [TransactionController::class, 'print']);
 
-Route::get('/transaksi', [TransactionController::class, 'list'])->name('transaksi.index');
+Route::get('/transaksi', [TransactionController::class, 'list'])->name('transaksi.index.api');
