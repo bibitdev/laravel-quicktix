@@ -7,16 +7,16 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 
-// Halaman login (GET /)
+// Halaman login
 Route::get('/', function () {
     return view('pages.auth.login');
-})->name('login.page'); // nama route ini 'login' untuk form login
+})->name('login.page');
 
-// Login & logout
+// Login & Logout
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Protected routes (hanya untuk user yang sudah login)
+// Protected routes
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
@@ -25,16 +25,23 @@ Route::middleware(['auth'])->group(function () {
         return view('pages.dashboard', ['type_menu' => 'home'], compact('total_user'));
     })->name('home');
 
-    // Resource routes
-    Route::resource('users', UserController::class);
-    Route::resource('categories', CategoryController::class);
-    Route::resource('products', ProductController::class);
+    // --- Shared Access (Admin & Staff): hanya index ---
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('products', [ProductController::class, 'index'])->name('products.index');
 
-    // Transaksi
+    // --- Admin Only: full CRUD ---
+    Route::middleware(['role:admin'])->group(function () {
+        Route::resource('users', UserController::class)->except(['index']);
+        Route::resource('categories', CategoryController::class)->except(['index']);
+        Route::resource('products', ProductController::class)->except(['index']);
+    });
+
+    // --- Transaksi ---
     Route::get('/transaksi', [TransactionController::class, 'list'])->name('transaksi.index');
     Route::get('/transaksi/{id}/cetak', [TransactionController::class, 'cetak'])->name('transaksi.cetak');
     Route::post('/transactions/print', [TransactionController::class, 'print']);
 
-    // Download recap bulanan
+    // --- Download Recap (bisa dikunci juga khusus admin kalau perlu) ---
     Route::get('/recap/{month}/download', [TransactionController::class, 'downloadRecap'])->name('recap.download');
 });

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Payment Receipt</title>
@@ -29,7 +30,7 @@
             background: #fff;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
@@ -82,6 +83,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
@@ -94,8 +96,16 @@
             <p>Dusun II, Karangsalam, Baturaden, Banyumas</p>
         </div>
 
+
+        <div style="margin-top: 8px; font-size: 13px; font-weight: 600; color: #2c3e50;">
+            Nomor Tiket: <span style="color:#3949AB">{{ $transaction->ticket_number }}</span>
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 10px auto; width: 60%;">
+
         <div class="qr-code">
-            <img src="{{ base_path('storage/app/public/qr/' . $transaction->id . '.png') }}" alt="QR Code" width="150">
+            <img src="{{ base_path('storage/app/public/qr/' . $transaction->id . '.png') }}" alt="QR Code"
+                width="150">
         </div>
         <div style="font-size:12px; margin-bottom:10px;">
             Scan this QR code to verify tickets
@@ -126,4 +136,5 @@
     </div>
 
 </body>
+
 </html>

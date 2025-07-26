@@ -104,31 +104,6 @@
                                         </option>
                                     @endforeach
                                 </select>
-
-                            </div>
-
-                            <div class="form-group mb-0">
-                                <label class="form-label w-100">Status</label>
-                                <div class="selectgroup selectgroup-pills">
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="status" value="published" class="selectgroup-input"
-                                            {{ $product->status == 'published' ? 'checked' : '' }}>
-                                        <span class="selectgroup-button">Published</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="status" value="archived" class="selectgroup-input"
-                                            {{ $product->status == 'archived' ? 'checked' : '' }}>
-                                        <span class="selectgroup-button">Archived</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label mt-4">Photo Product</label>
-                                <div class="col-sm-9">
-                                    <input type="file" class="form-control" name="image"
-                                        @error('image') is-invalid @enderror>
-                                </div>
                             </div>
 
                             <div class="form-group mb-0">
@@ -147,23 +122,6 @@
                                 </div>
                             </div>
 
-
-                            {{-- is favorite --}}
-                            <div class="form-group mt-4">
-                                <label class="form-label w-100">Is Favorite</label>
-                                <div class="selectgroup selectgroup-pills">
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="favorite" value="1" class="selectgroup-input"
-                                            {{ $product->favorite == 1 ? 'checked' : '' }}>
-                                        <span class="selectgroup-button">Yes</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="favorite" value="0" class="selectgroup-input"
-                                            {{ $product->favorite == 0 ? 'checked' : '' }}>
-                                        <span class="selectgroup-button">No</span>
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                         <div class="card-footer text-right">
                             <button class="btn btn-primary">Submit</button>

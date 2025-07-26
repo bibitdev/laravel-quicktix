@@ -99,33 +99,6 @@
                                 </select>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Photo Product</label>
-                                <div class="col-sm-9">
-                                    <input type="file" class="form-control" name="image"
-                                        @error('image') is-invalid @enderror>
-                                </div>
-                                @error('image')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Status</label>
-                                <div class="selectgroup selectgroup-pills">
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="status" value="published" class="selectgroup-input"
-                                            checked="">
-                                        <span class="selectgroup-button">Published</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="status" value="archived" class="selectgroup-input">
-                                        <span class="selectgroup-button">Archived</span>
-                                    </label>
-                                </div>
-                            </div>
 
                             <div class="form-group">
                                 <label class="form-label">Creteria</label>
@@ -141,23 +114,6 @@
                                     </label>
                                 </div>
                             </div>
-
-                            {{-- is favorite --}}
-                            <div class="form-group">
-                                <label class="form-label">Is Favorite</label>
-                                <div class="selectgroup selectgroup-pills">
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="favorite" value="1" class="selectgroup-input"
-                                            checked="">
-                                        <span class="selectgroup-button">Yes</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="radio" name="favorite" value="0" class="selectgroup-input">
-                                        <span class="selectgroup-button">No</span>
-                                    </label>
-                                </div>
-                            </div>
-
 
                         </div>
                         <div class="card-footer text-right">

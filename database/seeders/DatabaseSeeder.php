@@ -11,23 +11,10 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('12345678'),
+        $this->call([
+            AdminSeeder::class
         ]);
-
-        //category factory
-        Category::factory(2)->create();
-
-        //product factory 100
-        Product::factory(100)->create();
     }
 }

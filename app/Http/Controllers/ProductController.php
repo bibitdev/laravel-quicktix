@@ -8,104 +8,101 @@ use App\Models\Category;
 
 class ProductController extends Controller
 {
-    //index
+    // Menampilkan daftar produk
     public function index(Request $request)
     {
         $products = Product::when($request->keyword, function ($query) use ($request) {
             $query->where('name', 'like', "%{$request->keyword}%")
                 ->orWhere('description', 'like', "%{$request->keyword}%");
         })->orderBy('id', 'desc')->paginate(10);
-        return view('pages.products.index', compact('products'));
+
+        // Hitung total stok & produk habis
+        $totalStok = Product::sum('stock');
+        $produkHabis = Product::where('stock', 0)->count();
+
+        return view('pages.products.index', compact('products', 'totalStok', 'produkHabis'));
     }
 
-    //create
+    // Form tambah produk
     public function create()
     {
         $categories = Category::orderBy('name', 'ASC')->get();
         return view('pages.products.create', compact('categories'));
     }
 
-    //store
+    // Simpan produk baru
     public function store(Request $request)
     {
         $request->validate([
             'category_id' => 'required',
             'name' => 'required',
-            'description' => 'required',
-            'price' => 'required',
-            // 'image' => 'required',
+            'description' => 'nullable',
+            'price' => 'required|numeric',
             'criteria' => 'required',
-            // 'favorite' => 'required',
-            // 'status' => 'required',
-            // 'stock' => 'required',
+            'stock' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
-
-        // 'category_id',
-        // 'name',
-        // 'description',
-        // 'price',
-        // 'image',
-        // 'criteria',
-        // 'favorite',
-        // 'status',
-        // 'stock',
 
         $product = new Product;
         $product->category_id = $request->category_id;
         $product->name = $request->name;
-        $product->description = '';
+        $product->description = $request->description ?? '';
         $product->price = $request->price;
-
         $product->criteria = $request->criteria;
         $product->favorite = false;
         $product->status = 'published';
-        $product->stock = 0;
+        $product->stock = $request->stock ?? 0;
         $product->save();
 
-        //image
-        $image = $request->file('image');
-        $image->storeAs('public/products', $product->id . '.' . $image->extension());
-        $product->image = 'products/' . $product->id . '.' . $image->extension();
-        $product->save();
+        // Simpan gambar jika ada
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $image->storeAs('public/products', $product->id . '.' . $image->extension());
+            $product->image = 'products/' . $product->id . '.' . $image->extension();
+            $product->save();
+        }
 
         return redirect()->route('products.index')->with('success', 'Product created successfully');
     }
 
-    //edit
+    // Form edit produk
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name', 'ASC')->get();
         return view('pages.products.edit', compact('product', 'categories'));
     }
 
-    //update
+    // Update produk
     public function update(Request $request, Product $product)
     {
+        $request->validate([
+            'name' => 'required',
+            'price' => 'required|numeric',
+            'stock' => 'nullable|integer|min:0',
+            'image' => 'nullable|image|max:2048',
+        ]);
 
-        // $product->category_id = $request->category_id;
         $product->name = $request->name;
-        // $product->description = $request->description;
         $product->price = $request->price;
-        // $product->criteria = $request->criteria;
-        // $product->favorite = $request->favorite;
-        // $product->status = $request->status;
-        // $product->stock = $request->stock;
+
+        if (!is_null($request->stock)) {
+            $product->stock = $request->stock;
+        }
+
         $product->save();
 
-        //product with category
-        $product = Product::with('category')->find($product->id);
-
-        //check if image is not empty
-        if ($request->image) {
+        // Update gambar jika ada
+        if ($request->hasFile('image')) {
             $image = $request->file('image');
             $image->storeAs('public/products', $product->id . '.' . $image->extension());
             $product->image = 'products/' . $product->id . '.' . $image->extension();
             $product->save();
         }
+
         return redirect()->route('products.index')->with('success', 'Product updated successfully');
     }
 
-    //destroy
+    // Hapus produk
     public function destroy(Product $product)
     {
         $product->delete();

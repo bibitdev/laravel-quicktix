@@ -44,4 +44,40 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is staff
+     */
+    public function isStaff()
+    {
+        return $this->role === 'staff';
+    }
+
+    /**
+     * Check if user has admin or staff role
+     */
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Get role display name
+     */
+    public function getRoleDisplayName()
+    {
+        return match($this->role) {
+            'admin' => 'Administrator',
+            'staff' => 'Staff',
+            default => 'Unknown'
+        };
+    }
 }

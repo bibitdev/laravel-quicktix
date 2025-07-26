@@ -14,8 +14,26 @@
         </div>
 
         <div class="section-body">
-            {{-- Alert (kalau ada) --}}
             @include('layouts.alert')
+
+            {{-- Filter Tanggal --}}
+            <form method="GET" action="{{ route('transaksi.index') }}" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="start_date">Dari Tanggal</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ request('start_date') }}"
+                            class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end_date">Sampai Tanggal</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ request('end_date') }}"
+                            class="form-control">
+                    </div>
+                    <div class="col-md-3 align-self-end">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </div>
+                </div>
+            </form>
 
             {{-- Daftar Semua Transaksi --}}
             <div class="row mt-4">
@@ -35,13 +53,17 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($transactions as $trx)
+                                        @forelse ($transactions as $trx)
                                             <tr>
                                                 <td>{{ $trx->id }}</td>
                                                 <td>Rp. {{ number_format($trx->amount, 0, ',', '.') }}</td>
-                                                <td>{{ $trx->created_at }}</td>
+                                                <td>{{ $trx->created_at->format('d-m-Y H:i') }}</td>
                                             </tr>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="text-center">Tidak ada transaksi.</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
@@ -65,11 +87,11 @@
                                             <th>Bulan</th>
                                             <th>Total Transaksi</th>
                                             <th>Total Amount</th>
-                                            <th>Aksi</th> {{-- Tambah kolom Aksi untuk Download PDF --}}
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($recap as $item)
+                                        @forelse ($recap as $item)
                                             <tr>
                                                 <td>{{ $item->month }}</td>
                                                 <td>{{ $item->total_transactions }}</td>
@@ -82,7 +104,11 @@
                                                     </a>
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center">Belum ada recap.</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
@@ -90,6 +116,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </section>
 </div>
