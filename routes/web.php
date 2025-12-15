@@ -20,10 +20,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/home', function () {
-        $total_user = \App\Models\User::count();
-        return view('pages.dashboard', ['type_menu' => 'home'], compact('total_user'));
-    })->name('home');
+    Route::get('/home', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
 
     // --- Shared Access (Admin & Staff): hanya index ---
     Route::get('users', [UserController::class, 'index'])->name('users.index');

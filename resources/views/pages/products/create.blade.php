@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Product Create')
+@section('title', 'Tambah Produk')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -16,27 +16,27 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Advanced Forms</h1>
+                <h1>Tambah Produk</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Forms</a></div>
-                    <div class="breadcrumb-item">Product</div>
+                    <div class="breadcrumb-item"><a href="#">Produk</a></div>
+                    <div class="breadcrumb-item">Tambah Baru</div>
                 </div>
             </div>
 
             <div class="section-body">
-                <h2 class="section-title">Product</h2>
+                <h2 class="section-title">Form Produk</h2>
 
 
                 <div class="card">
                     <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="card-header">
-                            <h4>Input Text</h4>
+                            <h4>Data Produk</h4>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Name</label>
+                                <label>Nama</label>
                                 <input type="text"
                                     class="form-control @error('name')
                                 is-invalid
@@ -49,7 +49,7 @@
                                 @enderror
                             </div>
                             <div class="form-group">
-                                <label>Description</label>
+                                <label>Deskripsi</label>
                                 <input type="text"
                                     class="form-control @error('description')
                                 is-invalid
@@ -62,7 +62,7 @@
                                 @enderror
                             </div>
                             <div class="form-group">
-                                <label>Price</label>
+                                <label>Harga</label>
                                 <input type="number"
                                     class="form-control @error('price')
                                 is-invalid
@@ -75,7 +75,7 @@
                                 @enderror
                             </div>
                             <div class="form-group">
-                                <label>Stock</label>
+                                <label>Stok</label>
                                 <input type="number"
                                     class="form-control @error('stock')
                                 is-invalid
@@ -89,10 +89,10 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Category</label>
+                                <label class="form-label">Kategori</label>
                                 <select class="form-control selectric @error('category_id') is-invalid @enderror"
                                     name="category_id">
-                                    <option value="">Choose Category</option>
+                                    <option value="">Pilih Kategori</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                                     @endforeach
@@ -101,7 +101,7 @@
 
 
                             <div class="form-group">
-                                <label class="form-label">Creteria</label>
+                                <label class="form-label">Kriteria</label>
                                 <div class="selectgroup selectgroup-pills">
                                     <label class="selectgroup-item">
                                         <input type="radio" name="criteria" value="perorangan" class="selectgroup-input"
@@ -117,7 +117,7 @@
 
                         </div>
                         <div class="card-footer text-right">
-                            <button class="btn btn-primary">Submit</button>
+                            <button class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>

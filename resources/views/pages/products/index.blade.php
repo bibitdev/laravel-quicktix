@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Products')
+@section('title', 'Produk')
 
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/selectric/public/selectric.css') }}">
@@ -10,16 +10,16 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Product</h1>
+                <h1>Produk</h1>
                 <div class="section-header-button">
                     @can('create', App\Models\Product::class)
-                        <a href="{{ route('products.create') }}" class="btn btn-primary">Add New</a>
+                        <a href="{{ route('products.create') }}" class="btn btn-primary">Tambah Baru</a>
                     @endcan
                 </div>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Products</a></div>
-                    <div class="breadcrumb-item">All Products</div>
+                    <div class="breadcrumb-item"><a href="#">Produk</a></div>
+                    <div class="breadcrumb-item">Semua Produk</div>
                 </div>
             </div>
 
@@ -48,14 +48,14 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>All Products</h4>
+                                <h4>Semua Produk</h4>
                             </div>
                             <div class="card-body">
 
                                 <div class="float-right">
                                     <form method="GET" action="{{ route('products.index') }}">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" name="keyword" value="{{ request('keyword') }}">
+                                            <input type="text" class="form-control" placeholder="Cari" name="keyword" value="{{ request('keyword') }}">
                                             <div class="input-group-append">
                                                 <button class="btn btn-primary"><i class="fas fa-search"></i></button>
                                             </div>
@@ -69,13 +69,13 @@
                                     <table class="table-striped table">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
-                                                <th>Category</th>
-                                                <th>Price</th>
+                                                <th>Nama</th>
+                                                <th>Kategori</th>
+                                                <th>Harga</th>
                                                 <th>Status</th>
-                                                <th>Created At</th>
-                                                <th>Stock</th>
-                                                <th>Action</th>
+                                                <th>Dibuat Pada</th>
+                                                <th>Stok</th>
+                                                <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -108,7 +108,7 @@
                                                                     @csrf
                                                                     @method('DELETE')
                                                                     <button class="btn btn-sm btn-danger btn-icon confirm-delete">
-                                                                        <i class="fas fa-times"></i> Delete
+                                                                        <i class="fas fa-times"></i> Hapus
                                                                     </button>
                                                                 </form>
                                                             @endcan

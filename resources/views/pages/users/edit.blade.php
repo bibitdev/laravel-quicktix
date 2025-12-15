@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit User')
+@section('title', 'Edit Pengguna')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -16,27 +16,27 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Edit User</h1>
+                <h1>Edit Pengguna</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Users</a></div>
+                    <div class="breadcrumb-item"><a href="#">Pengguna</a></div>
                     <div class="breadcrumb-item">Edit</div>
                 </div>
             </div>
 
             <div class="section-body">
-                <h2 class="section-title">Edit User Information</h2>
+                <h2 class="section-title">Edit Informasi Pengguna</h2>
 
                 <div class="card">
                     <form action="{{ route('users.update', $user) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="card-header">
-                            <h4>Input Text</h4>
+                            <h4>Input Data</h4>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Name</label>
+                                <label>Nama</label>
                                 <input type="text" name="name"
                                     class="form-control @error('name') is-invalid @enderror"
                                     value="{{ old('name', $user->name) }}">
@@ -72,7 +72,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Phone</label>
+                                <label>Telepon</label>
                                 <input type="text" name="phone"
                                     class="form-control @error('phone') is-invalid @enderror"
                                     value="{{ old('phone', $user->phone) }}">
@@ -110,8 +110,8 @@
                         </div>
 
                         <div class="card-footer text-right">
-                            <a href="{{ route('users.index') }}" class="btn btn-secondary mr-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update User</button>
+                            <a href="{{ route('users.index') }}" class="btn btn-secondary mr-2">Batal</a>
+                            <button type="submit" class="btn btn-primary">Perbarui Pengguna</button>
                         </div>
                     </form>
                 </div>

@@ -87,7 +87,7 @@
 <body>
 
     <div class="header">
-        PAYMENT RECEIPT
+        STRUK PEMBAYARAN
     </div>
 
     <div class="content">
@@ -108,7 +108,7 @@
                 width="150">
         </div>
         <div style="font-size:12px; margin-bottom:10px;">
-            Scan this QR code to verify tickets
+            Pindai kode QR ini untuk verifikasi tiket
         </div>
 
         <table>

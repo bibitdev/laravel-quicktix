@@ -15,22 +15,22 @@
 
             <li class="nav-item ">
                 <a href="{{ route('users.index') }}" class="nav-link "><i class="fas fa-columns"></i>
-                    <span>Users</span></a>
+                    <span>Pengguna</span></a>
             </li>
 
             <li class="nav-item ">
                 <a href="{{ route('categories.index') }}" class="nav-link "><i class="fas fa-columns"></i>
-                    <span>Categories</span></a>
+                    <span>Kategori</span></a>
             </li>
 
             <li class="nav-item ">
                 <a href="{{ route('products.index') }}" class="nav-link "><i class="fas fa-columns"></i>
-                    <span>Tikets</span></a>
+                    <span>Tiket</span></a>
             </li>
 
             <li class="nav-item ">
                 <a href="{{ route('transaksi.index') }}" class="nav-link "><i class="fas fa-columns"></i>
-                    <span>Transaction</span></a>
+                    <span>Transaksi</span></a>
             </li>
 
     </aside>

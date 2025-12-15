@@ -48,7 +48,7 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Amount</th>
+                                            <th>Jumlah</th>
                                             <th>Tanggal</th>
                                         </tr>
                                     </thead>
@@ -77,7 +77,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Recap Bulanan</h4>
+                            <h4>Rekap Bulanan</h4>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -86,7 +86,7 @@
                                         <tr>
                                             <th>Bulan</th>
                                             <th>Total Transaksi</th>
-                                            <th>Total Amount</th>
+                                            <th>Total Jumlah</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -106,7 +106,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="4" class="text-center">Belum ada recap.</td>
+                                                <td colspan="4" class="text-center">Belum ada rekap.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>

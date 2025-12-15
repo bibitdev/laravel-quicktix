@@ -12,6 +12,7 @@ class Transaction extends Model
     protected $table = 'transactions'; // nama tabel di database
 
     protected $fillable = [
+        'ticket_number',
         'amount',
         'payment_method',
         'transaction_time',

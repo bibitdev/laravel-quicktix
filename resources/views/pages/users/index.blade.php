@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Users')
+@section('title', 'Pengguna')
 
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/selectric/public/selectric.css') }}">
@@ -10,16 +10,16 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Users</h1>
+                <h1>Pengguna</h1>
                 <div class="section-header-button">
                     @can('create', App\Models\User::class)
-                        <a href="{{ route('users.create') }}" class="btn btn-primary">Add New</a>
+                        <a href="{{ route('users.create') }}" class="btn btn-primary">Tambah Baru</a>
                     @endcan
                 </div>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Users</a></div>
-                    <div class="breadcrumb-item">All Users</div>
+                    <div class="breadcrumb-item"><a href="#">Pengguna</a></div>
+                    <div class="breadcrumb-item">Semua Pengguna</div>
                 </div>
             </div>
 
@@ -29,23 +29,23 @@
                         @include('layouts.alert')
                     </div>
                 </div>
-                <h2 class="section-title">Users</h2>
+                <h2 class="section-title">Pengguna</h2>
                 <p class="section-lead">
-                    You can manage all Users, such as editing, deleting and more.
+                    Anda dapat mengelola semua Pengguna, seperti mengedit, menghapus, dan lainnya.
                 </p>
 
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>All Users</h4>
+                                <h4>Semua Pengguna</h4>
                             </div>
                             <div class="card-body">
 
                                 <div class="float-right">
                                     <form method="GET" action="{{ route('users.index') }}">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" name="keyword">
+                                            <input type="text" class="form-control" placeholder="Cari" name="keyword">
                                             <div class="input-group-append">
                                                 <button class="btn btn-primary"><i class="fas fa-search"></i></button>
                                             </div>
@@ -58,12 +58,12 @@
                                 <div class="table-responsive">
                                     <table class="table-striped table">
                                         <tr>
-                                            <th>Name</th>
+                                            <th>Nama</th>
                                             <th>Email</th>
-                                            <th>Phone</th>
-                                            <th>Position</th>
-                                            <th>Created At</th>
-                                            <th>Action</th>
+                                            <th>No HP</th>
+                                            <th>Posisi</th>
+                                            <th>Dibuat Pada</th>
+                                            <th>Aksi</th>
                                         </tr>
                                         @foreach ($users as $user)
                                             <tr>
@@ -89,7 +89,7 @@
                                                                     value="{{ csrf_token() }}" />
                                                                 <button
                                                                     class="btn btn-sm btn-danger btn-icon confirm-delete">
-                                                                    <i class="fas fa-times"></i> Delete
+                                                                    <i class="fas fa-times"></i> Hapus
                                                                 </button>
                                                             </form>
                                                         </div>

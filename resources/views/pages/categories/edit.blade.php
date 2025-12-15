@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Category')
+@section('title', 'Edit Kategori')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -17,18 +17,18 @@
         <section class="section">
 
             <div class="section-body">
-                <h2 class="section-title">Category</h2>
+                <h2 class="section-title">Edit Kategori</h2>
 
                 <div class="card">
                     <form action="{{ route('categories.update', $category) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="card-header">
-                            <h4>Input Text</h4>
+                            <h4>Data Kategori</h4>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Name</label>
+                                <label>Nama</label>
                                 <input type="text"
                                     class="form-control @error('name')
                                 is-invalid
@@ -41,7 +41,7 @@
                                 @enderror
                             </div>
                             <div class="form-group">
-                                <label>Description</label>
+                                <label>Deskripsi</label>
                                 <input type="text"
                                     class="form-control @error('description')
                                 is-invalid
@@ -57,7 +57,7 @@
 
                         </div>
                         <div class="card-footer text-right">
-                            <button class="btn btn-primary">Submit</button>
+                            <button class="btn btn-primary">Perbarui</button>
                         </div>
                     </form>
                 </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -40,6 +41,13 @@ class OrderController extends Controller
             $orderItem->quantity = $item['quantity'];
             $orderItem->total_price = $item['total_price'] * $item['quantity'];
             $orderItem->save();
+
+            // Kurangi stok produk
+            $product = Product::find($item['product_id']);
+            if ($product) {
+                $product->stock -= $item['quantity'];
+                $product->save();
+            }
         }
 
         return response()->json(['status' => 'success', 'data' => $order], 201);

@@ -1,35 +1,149 @@
 @extends('layouts.app')
 
-@section('title', 'General Dashboard')
+@section('title', 'Dashboard Analytics')
 
 @push('style')
     <!-- CSS Libraries -->
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/chart.js/dist/Chart.min.css') }}">
+    <style>
+        .card-statistic-1 {
+            transition: transform 0.3s ease;
+        }
+        .card-statistic-1:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .card-header-action select {
+            height: 35px;
+            padding: 0 15px;
+            border-radius: 4px;
+            border: 1px solid #e4e6fc;
+            font-size: 13px;
+            color: #34395e;
+        }
+    </style>
 @endpush
 
 @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Dashboard</h1>
+                <h1>Dashboard Analitik</h1>
             </div>
 
             <div class="section-body">
+                <!-- Key Metrics -->
                 <div class="row">
-                    <!-- Card: Total Admin -->
-                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                    <!-- Daily Visitors -->
+                    <div class="col-lg-3 col-md-6 col-12">
                         <div class="card card-statistic-1">
                             <div class="card-icon bg-primary">
-                                <i class="far fa-user"></i>
+                                <i class="fas fa-users"></i>
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Admin</h4>
+                                    <h4>Pengunjung Hari Ini</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $total_user }}
+                                    {{ $daily_visitors }}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Revenue -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="card card-statistic-1">
+                            <div class="card-icon bg-success">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="card-wrap">
+                                <div class="card-header">
+                                    <h4>Pendapatan Hari Ini</h4>
+                                </div>
+                                <div class="card-body">
+                                    Rp {{ number_format($daily_revenue) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tickets Sold -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="card card-statistic-1">
+                            <div class="card-icon bg-warning">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="card-wrap">
+                                <div class="card-header">
+                                    <h4>Tiket Terjual</h4>
+                                </div>
+                                <div class="card-body">
+                                    {{ $tickets_sold }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        <!-- Card: Active Sessions -->
+                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                        <div class="card card-statistic-1">
+                            <div class="card-icon bg-danger">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="card-wrap">
+                                <div class="card-header">
+                                    <h4>Transaksi</h4>
+                                </div>
+                                <div class="card-body">
+                                    {{ $total_transactions ?? 0 }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- Charts -->
+                <div class="row">
+                    <!-- Visitor Trends (Tiket Terjual) -->
+                    <div class="col-lg-6 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Tren Penjualan Tiket (7 Hari Terakhir)</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="visitorTrend" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Revenue -->
+                    <div class="col-lg-6 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Tren Pendapatan (7 Hari Terakhir)</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="salesTrend" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Payment Methods -->
+                    <div class="col-lg-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Transaksi per Metode Pembayaran</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="paymentMethods" height="100"></canvas>
                             </div>
                         </div>
                     </div>
@@ -41,13 +155,270 @@
 
 @push('scripts')
     <!-- JS Libraries -->
-    <script src="{{ asset('library/simpleweather/jquery.simpleWeather.min.js') }}"></script>
     <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
-    <script src="{{ asset('library/jqvmap/dist/jquery.vmap.min.js') }}"></script>
-    <script src="{{ asset('library/jqvmap/dist/maps/jquery.vmap.world.js') }}"></script>
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.min.js') }}"></script>
-    <script src="{{ asset('library/chocolat/dist/js/jquery.chocolat.min.js') }}"></script>
 
-    <!-- Page Specific JS File -->
-    <script src="{{ asset('js/page/index-0.js') }}"></script>
+    <!-- Dashboard Analytics Charts -->
+    <script>
+        // Prepare data from PHP
+        const visitorData = {
+            dates: @json($visitor_data->pluck('date')),
+            counts: @json($visitor_data->pluck('count'))
+        };
+
+        const salesData = {
+            dates: @json($sales_data->pluck('date')),
+            totals: @json($sales_data->pluck('total'))
+        };
+
+        const paymentData = {
+            methods: @json($payment_data->pluck('payment_method')),
+            counts: @json($payment_data->pluck('count'))
+        };
+
+        // Visitor Trend Chart (Tiket Terjual)
+        const visitorTrend = new Chart(document.getElementById('visitorTrend'), {
+            type: 'line',
+            data: {
+                labels: visitorData.dates.length > 0 ? visitorData.dates : ['Belum ada data'],
+                datasets: [{
+                    label: 'Jumlah Tiket Terjual',
+                    data: visitorData.counts.length > 0 ? visitorData.counts : [0],
+                    borderColor: '#6777ef',
+                    backgroundColor: 'rgba(103, 119, 239, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6777ef',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Tiket: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Sales Trend Chart (Pendapatan)
+        const salesTrend = new Chart(document.getElementById('salesTrend'), {
+            type: 'line',
+            data: {
+                labels: salesData.dates.length > 0 ? salesData.dates : ['Belum ada data'],
+                datasets: [{
+                    label: 'Total Pendapatan',
+                    data: salesData.totals.length > 0 ? salesData.totals : [0],
+                    borderColor: '#48c78e',
+                    backgroundColor: 'rgba(72, 199, 142, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#48c78e',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'k';
+                                }
+                                return value;
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Payment Methods Chart (Line Chart seperti di gambar)
+        const paymentMethods = new Chart(document.getElementById('paymentMethods'), {
+            type: 'line',
+            data: {
+                labels: paymentData.methods.length > 0 ? paymentData.methods : ['Belum ada data'],
+                datasets: [{
+                    label: 'Tunai',
+                    data: paymentData.methods.map((method, index) => method === 'Tunai' ? paymentData.counts[index] : 0),
+                    borderColor: '#6777ef',
+                    backgroundColor: 'rgba(103, 119, 239, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6777ef',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }, {
+                    label: 'Transfer',
+                    data: paymentData.methods.map((method, index) => method === 'Transfer' ? paymentData.counts[index] : 0),
+                    borderColor: '#48c78e',
+                    backgroundColor: 'rgba(72, 199, 142, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#48c78e',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' transaksi';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 @endpush
