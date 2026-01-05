@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\DashboardController as ApiDashboardController;
 use App\Http\Controllers\TransactionController;
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,9 @@ Route::apiResource('/api-categories', CategoryController::class)->middleware('au
 
 //orders
 Route::post('/api-orders', [OrderController::class, 'store'])->middleware('auth:sanctum');
+
+//dashboard analytics
+Route::get('/dashboard', [ApiDashboardController::class, 'index'])->middleware('auth:sanctum');
 
 //Transactions
 Route::get('/recap/monthly', [TransactionController::class, 'index']);

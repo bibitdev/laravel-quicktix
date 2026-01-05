@@ -159,24 +159,40 @@
 
     <!-- Dashboard Analytics Charts -->
     <script>
-        // Prepare data from PHP
-        const visitorData = {
-            dates: @json($visitor_data->pluck('date')),
-            counts: @json($visitor_data->pluck('count'))
-        };
+        // Prepare data from PHP (array format from controller)
+        const ticketSalesTrend = @json($ticket_sales_trend ?? []);
+        const revenueTrend = @json($revenue_trend ?? []);
+        const paymentMethods = @json($payment_methods ?? []);
 
-        const salesData = {
-            dates: @json($sales_data->pluck('date')),
-            totals: @json($sales_data->pluck('total'))
-        };
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        console.log('Ticket Sales Trend:', ticketSalesTrend);
+        console.log('Revenue Trend:', revenueTrend);
+        console.log('Payment Methods:', paymentMethods);
 
-        const paymentData = {
-            methods: @json($payment_data->pluck('payment_method')),
-            counts: @json($payment_data->pluck('count'))
-        };
+            // Extract dates and totals for charts
+            const visitorData = {
+                dates: ticketSalesTrend.map(item => item.date),
+                counts: ticketSalesTrend.map(item => item.total)
+            };
+
+            const salesData = {
+                dates: revenueTrend.map(item => item.date),
+                totals: revenueTrend.map(item => item.total)
+            };
+
+            const paymentData = {
+                methods: paymentMethods.map(item => item.payment_method),
+                counts: paymentMethods.map(item => item.count),
+                totals: paymentMethods.map(item => item.total)
+            };
 
         // Visitor Trend Chart (Tiket Terjual)
-        const visitorTrend = new Chart(document.getElementById('visitorTrend'), {
+        const visitorCanvas = document.getElementById('visitorTrend');
+        if (!visitorCanvas) {
+            console.error('Canvas element visitorTrend not found!');
+        } else {
+            console.log('Creating visitorTrend chart...');
+            const visitorTrend = new Chart(visitorCanvas, {
             type: 'line',
             data: {
                 labels: visitorData.dates.length > 0 ? visitorData.dates : ['Belum ada data'],
@@ -250,9 +266,15 @@
                 }
             }
         });
+        }
 
         // Sales Trend Chart (Pendapatan)
-        const salesTrend = new Chart(document.getElementById('salesTrend'), {
+        const salesCanvas = document.getElementById('salesTrend');
+        if (!salesCanvas) {
+            console.error('Canvas element salesTrend not found!');
+        } else {
+            console.log('Creating salesTrend chart...');
+            const salesTrend = new Chart(salesCanvas, {
             type: 'line',
             data: {
                 labels: salesData.dates.length > 0 ? salesData.dates : ['Belum ada data'],
@@ -333,9 +355,15 @@
                 }
             }
         });
+        }
 
         // Payment Methods Chart (Line Chart seperti di gambar)
-        const paymentMethods = new Chart(document.getElementById('paymentMethods'), {
+        const paymentCanvas = document.getElementById('paymentMethods');
+        if (!paymentCanvas) {
+            console.error('Canvas element paymentMethods not found!');
+        } else {
+            console.log('Creating paymentMethods chart...');
+            const paymentMethodsChart = new Chart(paymentCanvas, {
             type: 'line',
             data: {
                 labels: paymentData.methods.length > 0 ? paymentData.methods : ['Belum ada data'],
@@ -420,5 +448,8 @@
                 }
             }
         });
+        }
+
+        console.log('All charts initialized!');
     </script>
 @endpush

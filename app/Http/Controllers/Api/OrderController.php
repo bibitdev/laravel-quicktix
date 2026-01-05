@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Transaction;
 
 class OrderController extends Controller
 {
@@ -49,6 +50,15 @@ class OrderController extends Controller
                 $product->save();
             }
         }
+
+        // Buat record Transaction untuk dashboard analytics
+        $transaction = new Transaction;
+        $transaction->ticket_number = 'TRX-' . str_pad($order->id, 8, '0', STR_PAD_LEFT);
+        $transaction->amount = $order->total_price;
+        $transaction->payment_method = $order->payment_method;
+        $transaction->transaction_time = $order->transaction_time;
+        $transaction->cashier_id = $order->cashier_id;
+        $transaction->save();
 
         return response()->json(['status' => 'success', 'data' => $order], 201);
     }

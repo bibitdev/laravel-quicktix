@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Transaction;
@@ -11,49 +12,73 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Get dashboard analytics data
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         $today = Carbon::today();
 
         $data = [
+            // Today's statistics
             'daily_visitors' => $this->getDailyVisitors($today),
             'daily_revenue' => $this->getDailyRevenue($today),
             'tickets_sold' => $this->getTicketsSold($today),
             'total_transactions' => $this->getTotalTransactions($today),
 
-            // Chart Data
+            // Chart Data (7 days)
             'ticket_sales_trend' => $this->getTicketSalesTrend(),
             'revenue_trend' => $this->getRevenueTrend(),
             'payment_methods' => $this->getPaymentMethodStats(),
         ];
 
-        return view('pages.dashboard', $data);
+        return response()->json([
+            'status' => 'success',
+            'data' => $data
+        ], 200);
     }
 
+    /**
+     * Get daily visitors (total quantity of tickets sold today)
+     */
     private function getDailyVisitors($date)
     {
         return OrderItem::whereDate('created_at', $date)
             ->sum('quantity');
     }
 
+    /**
+     * Get daily revenue (total amount from transactions today)
+     */
     private function getDailyRevenue($date)
     {
         return Transaction::whereDate('created_at', $date)
             ->sum('amount');
     }
 
+    /**
+     * Get tickets sold today
+     */
     private function getTicketsSold($date)
     {
         return OrderItem::whereDate('created_at', $date)
             ->sum('quantity');
     }
 
+    /**
+     * Get total transactions today
+     */
     private function getTotalTransactions($date)
     {
         return Transaction::whereDate('created_at', $date)
             ->count();
     }
 
+    /**
+     * Get ticket sales trend for last 7 days
+     */
     private function getTicketSalesTrend()
     {
         $endDate = Carbon::today();
@@ -80,6 +105,9 @@ class DashboardController extends Controller
         return $result;
     }
 
+    /**
+     * Get revenue trend for last 7 days
+     */
     private function getRevenueTrend()
     {
         $endDate = Carbon::today();
@@ -106,6 +134,9 @@ class DashboardController extends Controller
         return $result;
     }
 
+    /**
+     * Get payment method statistics
+     */
     private function getPaymentMethodStats()
     {
         return Transaction::selectRaw('payment_method, COUNT(*) as count, SUM(amount) as total')
@@ -117,8 +148,6 @@ class DashboardController extends Controller
                     'count' => (int) $item->count,
                     'total' => (float) $item->total
                 ];
-            })
-            ->values()
-            ->toArray();
+            });
     }
 }
