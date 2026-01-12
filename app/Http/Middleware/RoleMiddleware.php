@@ -16,6 +16,13 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check()) {
+            // Check if request is API
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthenticated. Please login first.'
+                ], 401);
+            }
             return redirect()->route('login.page');
         }
 
@@ -26,7 +33,17 @@ class RoleMiddleware
             return $next($request);
         }
 
-        // Redirect based on user role if they don't have access
+        // Return JSON response for API requests
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden. Anda tidak memiliki akses. Role Anda: ' . $user->role,
+                'required_roles' => $roles,
+                'your_role' => $user->role
+            ], 403);
+        }
+
+        // Redirect based on user role if they don't have access (for web)
         if ($user->isStaff()) {
             return redirect()->route('transaksi.index')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
         }

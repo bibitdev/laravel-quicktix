@@ -21,7 +21,7 @@ class OrderController extends Controller
             'payment_amount' => 'required',
             'cashier_id' => 'required',
             'cashier_name' => 'required',
-            'payment_method' => 'required',
+            'payment_method' => 'required|in:Tunai,QRIS',
             'order_items' => 'required',
         ]);
 

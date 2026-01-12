@@ -39,12 +39,11 @@ Route::post('/api-orders', [OrderController::class, 'store'])->middleware('auth:
 //dashboard analytics
 Route::get('/dashboard', [ApiDashboardController::class, 'index'])->middleware('auth:sanctum');
 
-//Transactions
-Route::get('/recap/monthly', [TransactionController::class, 'index']);
-
-Route::post('/transactions', [TransactionController::class, 'store']);
-
-// Kirim data, generate pdf, dan kirim ke email / balikin link pdf
-Route::post('/transactions/print', [TransactionController::class, 'print']);
-
-Route::get('/transaksi', [TransactionController::class, 'list'])->name('transaksi.index.api');
+//Transactions - Only accessible by staff role
+Route::middleware(['auth:sanctum', 'role:staff'])->group(function () {
+    Route::get('/recap/monthly', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    // Kirim data, generate pdf, dan kirim ke email / balikin link pdf
+    Route::post('/transactions/print', [TransactionController::class, 'print']);
+    Route::get('/transaksi', [TransactionController::class, 'list'])->name('transaksi.index.api');
+});

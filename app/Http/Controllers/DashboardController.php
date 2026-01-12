@@ -13,13 +13,19 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
+        // Set timezone ke Asia/Jakarta (WIB)
+        $today = Carbon::today('Asia/Jakarta');
+        $yesterday = Carbon::yesterday('Asia/Jakarta');
 
         $data = [
             'daily_visitors' => $this->getDailyVisitors($today),
             'daily_revenue' => $this->getDailyRevenue($today),
             'tickets_sold' => $this->getTicketsSold($today),
             'total_transactions' => $this->getTotalTransactions($today),
+
+            // Comparison with yesterday
+            'revenue_comparison' => $this->getRevenueComparison($today, $yesterday),
+            'tickets_comparison' => $this->getTicketsComparison($today, $yesterday),
 
             // Chart Data
             'ticket_sales_trend' => $this->getTicketSalesTrend(),
@@ -32,35 +38,44 @@ class DashboardController extends Controller
 
     private function getDailyVisitors($date)
     {
-        return OrderItem::whereDate('created_at', $date)
-            ->sum('quantity');
+        // Hitung berdasarkan transaction_time dari Order, bukan created_at
+        return OrderItem::whereHas('order', function($query) use ($date) {
+            $query->whereDate('transaction_time', $date);
+        })->sum('quantity');
     }
 
     private function getDailyRevenue($date)
     {
-        return Transaction::whereDate('created_at', $date)
+        // Hitung berdasarkan transaction_time, bukan created_at
+        return Transaction::whereDate('transaction_time', $date)
             ->sum('amount');
     }
 
     private function getTicketsSold($date)
     {
-        return OrderItem::whereDate('created_at', $date)
-            ->sum('quantity');
+        // Hitung berdasarkan transaction_time dari Order, bukan created_at
+        return OrderItem::whereHas('order', function($query) use ($date) {
+            $query->whereDate('transaction_time', $date);
+        })->sum('quantity');
     }
 
     private function getTotalTransactions($date)
     {
-        return Transaction::whereDate('created_at', $date)
+        // Hitung berdasarkan transaction_time, bukan created_at
+        return Transaction::whereDate('transaction_time', $date)
             ->count();
     }
 
     private function getTicketSalesTrend()
     {
-        $endDate = Carbon::today();
-        $startDate = Carbon::today()->subDays(6);
+        $endDate = Carbon::today('Asia/Jakarta');
+        $startDate = Carbon::today('Asia/Jakarta')->subDays(6);
 
-        $data = OrderItem::selectRaw('DATE(created_at) as date, SUM(quantity) as total')
-            ->whereBetween('created_at', [$startDate, $endDate->endOfDay()])
+        // Query berdasarkan transaction_time dari Order
+        $data = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->selectRaw('DATE(orders.transaction_time) as date, SUM(order_items.quantity) as total')
+            ->whereBetween('orders.transaction_time', [$startDate, $endDate->endOfDay()])
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
@@ -82,11 +97,12 @@ class DashboardController extends Controller
 
     private function getRevenueTrend()
     {
-        $endDate = Carbon::today();
-        $startDate = Carbon::today()->subDays(6);
+        $endDate = Carbon::today('Asia/Jakarta');
+        $startDate = Carbon::today('Asia/Jakarta')->subDays(6);
 
-        $data = Transaction::selectRaw('DATE(created_at) as date, SUM(amount) as total')
-            ->whereBetween('created_at', [$startDate, $endDate->endOfDay()])
+        // Query berdasarkan transaction_time, bukan created_at
+        $data = Transaction::selectRaw('DATE(transaction_time) as date, SUM(amount) as total')
+            ->whereBetween('transaction_time', [$startDate, $endDate->endOfDay()])
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
@@ -120,5 +136,53 @@ class DashboardController extends Controller
             })
             ->values()
             ->toArray();
+    }
+
+    private function getRevenueComparison($today, $yesterday)
+    {
+        $todayRevenue = $this->getDailyRevenue($today);
+        $yesterdayRevenue = $this->getDailyRevenue($yesterday);
+
+        $difference = $todayRevenue - $yesterdayRevenue;
+        $percentageChange = 0;
+
+        if ($yesterdayRevenue > 0) {
+            $percentageChange = (($difference / $yesterdayRevenue) * 100);
+        } elseif ($todayRevenue > 0) {
+            $percentageChange = 100; // Jika kemarin 0 tapi hari ini ada, berarti naik 100%
+        }
+
+        return [
+            'today' => $todayRevenue,
+            'yesterday' => $yesterdayRevenue,
+            'difference' => $difference,
+            'percentage' => round($percentageChange, 1),
+            'trend' => $difference > 0 ? 'up' : ($difference < 0 ? 'down' : 'stable')
+        ];
+    }
+
+    private function getTicketsComparison($today, $yesterday)
+    {
+        $todayTickets = $this->getTicketsSold($today);
+        $yesterdayTickets = OrderItem::whereHas('order', function($query) use ($yesterday) {
+            $query->whereDate('transaction_time', $yesterday);
+        })->sum('quantity');
+
+        $difference = $todayTickets - $yesterdayTickets;
+        $percentageChange = 0;
+
+        if ($yesterdayTickets > 0) {
+            $percentageChange = (($difference / $yesterdayTickets) * 100);
+        } elseif ($todayTickets > 0) {
+            $percentageChange = 100;
+        }
+
+        return [
+            'today' => $todayTickets,
+            'yesterday' => $yesterdayTickets,
+            'difference' => $difference,
+            'percentage' => round($percentageChange, 1),
+            'trend' => $difference > 0 ? 'up' : ($difference < 0 ? 'down' : 'stable')
+        ];
     }
 }

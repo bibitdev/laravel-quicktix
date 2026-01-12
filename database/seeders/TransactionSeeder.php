@@ -50,8 +50,8 @@ class TransactionSeeder extends Seeder
                     ->setMinute(rand(0, 59))
                     ->setSecond(rand(0, 59));
 
-                // Random payment method
-                $paymentMethod = ['TUNAI', 'TRANSFER', 'QRIS'][rand(0, 2)];
+                // Random payment method (only Tunai and QRIS)
+                $paymentMethod = ['Tunai', 'QRIS'][rand(0, 1)];
 
                 // Random number of items (1-5)
                 $numItems = rand(1, 5);
