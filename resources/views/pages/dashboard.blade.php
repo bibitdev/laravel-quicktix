@@ -25,32 +25,6 @@
             font-size: 13px;
             color: #34395e;
         }
-        .insight-text {
-            font-size: 12px;
-            margin-top: 15px;
-            padding: 10px 12px;
-            border-radius: 6px;
-            line-height: 1.6;
-        }
-        .insight-text.success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 3px solid #28a745;
-        }
-        .insight-text.danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 3px solid #dc3545;
-        }
-        .insight-text.info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border-left: 3px solid #17a2b8;
-        }
-        .insight-text strong {
-            display: block;
-            margin-bottom: 4px;
-        }
     </style>
 @endpush
 
@@ -143,32 +117,7 @@
                                 <h4>Tren Penjualan Tiket (7 Hari Terakhir)</h4>
                             </div>
                             <div class="card-body">
-                                <canvas id="visitorTrend"></canvas>
-                                @if(isset($tickets_comparison))
-                                    @if($tickets_comparison['trend'] == 'up')
-                                        <div class="insight-text success">
-                                            <strong><i class="fas fa-check-circle"></i> Performa Meningkat</strong>
-                                            Penjualan tiket hari ini (<strong>{{ $tickets_comparison['today'] }} tiket</strong>)
-                                            lebih tinggi {{ abs($tickets_comparison['difference']) }} tiket
-                                            ({{ abs($tickets_comparison['percentage']) }}%) dibanding kemarin.
-                                            Pertahankan strategi penjualan saat ini.
-                                        </div>
-                                    @elseif($tickets_comparison['trend'] == 'down')
-                                        <div class="insight-text danger">
-                                            <strong><i class="fas fa-exclamation-triangle"></i> Perlu Perhatian</strong>
-                                            Penjualan tiket hari ini (<strong>{{ $tickets_comparison['today'] }} tiket</strong>)
-                                            turun {{ abs($tickets_comparison['difference']) }} tiket
-                                            ({{ abs($tickets_comparison['percentage']) }}%) dari kemarin.
-                                            Evaluasi promosi atau strategi marketing.
-                                        </div>
-                                    @else
-                                        <div class="insight-text info">
-                                            <strong><i class="fas fa-info-circle"></i> Stabil</strong>
-                                            Penjualan tiket hari ini sama dengan kemarin (<strong>{{ $tickets_comparison['today'] }} tiket</strong>).
-                                            Tidak ada perubahan signifikan.
-                                        </div>
-                                    @endif
-                                @endif
+                                <canvas id="visitorTrend" height="180"></canvas>
                             </div>
                         </div>
                     </div>
@@ -180,32 +129,7 @@
                                 <h4>Tren Pendapatan (7 Hari Terakhir)</h4>
                             </div>
                             <div class="card-body">
-                                <canvas id="salesTrend"></canvas>
-                                @if(isset($revenue_comparison))
-                                    @if($revenue_comparison['trend'] == 'up')
-                                        <div class="insight-text success">
-                                            <strong><i class="fas fa-check-circle"></i> Performa Meningkat</strong>
-                                            Pendapatan hari ini (<strong>Rp {{ number_format($revenue_comparison['today']) }}</strong>)
-                                            lebih tinggi Rp {{ number_format(abs($revenue_comparison['difference'])) }}
-                                            ({{ abs($revenue_comparison['percentage']) }}%) dibanding kemarin.
-                                            Tren positif untuk pertumbuhan bisnis.
-                                        </div>
-                                    @elseif($revenue_comparison['trend'] == 'down')
-                                        <div class="insight-text danger">
-                                            <strong><i class="fas fa-exclamation-triangle"></i> Perlu Perhatian</strong>
-                                            Pendapatan hari ini (<strong>Rp {{ number_format($revenue_comparison['today']) }}</strong>)
-                                            turun Rp {{ number_format(abs($revenue_comparison['difference'])) }}
-                                            ({{ abs($revenue_comparison['percentage']) }}%) dari kemarin.
-                                            Segera evaluasi strategi harga dan promosi.
-                                        </div>
-                                    @else
-                                        <div class="insight-text info">
-                                            <strong><i class="fas fa-info-circle"></i> Stabil</strong>
-                                            Pendapatan hari ini sama dengan kemarin (<strong>Rp {{ number_format($revenue_comparison['today']) }}</strong>).
-                                            Tidak ada perubahan signifikan.
-                                        </div>
-                                    @endif
-                                @endif
+                                <canvas id="salesTrend" height="180"></canvas>
                             </div>
                         </div>
                     </div>
@@ -289,8 +213,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2.5,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: true,
@@ -372,8 +295,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2.5,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: true,
