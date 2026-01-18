@@ -248,36 +248,58 @@
                 </div>
 
                 <!-- Holiday Impact Analysis -->
-                @if(isset($holiday_impact) && count($holiday_impact) > 0)
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Dampak Hari Libur Nasional</h4>
+                                <h4 id="holidayTitle">Dampak Hari Libur Nasional - <span id="holidayPeriodText">{{ now()->format('F Y') }}</span></h4>
                                 <div class="card-header-action">
-                                    <span class="badge badge-primary">Perbandingan pengunjung saat libur vs hari normal</span>
+                                    <select id="holidayYearSelector" class="form-control mr-2" style="width: auto; display: inline-block;">
+                                        <option value="2025">2025</option>
+                                        <option value="2026" {{ now()->year == 2026 ? 'selected' : '' }}>2026</option>
+                                    </select>
+                                    <select id="holidayMonthSelector" class="form-control" style="width: auto; display: inline-block;">
+                                        <option value="1" {{ now()->month == 1 ? 'selected' : '' }}>Januari</option>
+                                        <option value="2" {{ now()->month == 2 ? 'selected' : '' }}>Februari</option>
+                                        <option value="3" {{ now()->month == 3 ? 'selected' : '' }}>Maret</option>
+                                        <option value="4" {{ now()->month == 4 ? 'selected' : '' }}>April</option>
+                                        <option value="5" {{ now()->month == 5 ? 'selected' : '' }}>Mei</option>
+                                        <option value="6" {{ now()->month == 6 ? 'selected' : '' }}>Juni</option>
+                                        <option value="7" {{ now()->month == 7 ? 'selected' : '' }}>Juli</option>
+                                        <option value="8" {{ now()->month == 8 ? 'selected' : '' }}>Agustus</option>
+                                        <option value="9" {{ now()->month == 9 ? 'selected' : '' }}>September</option>
+                                        <option value="10" {{ now()->month == 10 ? 'selected' : '' }}>Oktober</option>
+                                        <option value="11" {{ now()->month == 11 ? 'selected' : '' }}>November</option>
+                                        <option value="12" {{ now()->month == 12 ? 'selected' : '' }}>Desember</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" id="holidayContent">
+                                @if(isset($holiday_impact) && count($holiday_impact) > 0)
                                 <div class="chart-container">
                                     <canvas id="holidayImpactChart"></canvas>
                                 </div>
-                                <div class="row mt-4">
+                                <div class="row mt-4" id="holidayStats">
                                     @foreach($holiday_impact as $holiday)
-                                    <div class="col-lg-3 col-md-6 text-center">
+                                    <div class="col-lg-3 col-md-6 text-center mb-3">
                                         <h6 class="font-weight-bold">{{ $holiday['name'] }}</h6>
-                                        <h3 class="text-{{ $holiday['impact'] >= 100 ? 'success' : ($holiday['impact'] >= 50 ? 'warning' : 'info') }}">
+                                        <small class="text-muted d-block mb-1">{{ $holiday['date'] }}</small>
+                                        <h3 class="text-{{ $holiday['impact'] >= 100 ? 'success' : ($holiday['impact'] >= 0 ? 'info' : 'danger') }}">
                                             {{ $holiday['impact'] >= 0 ? '+' : '' }}{{ $holiday['impact'] }}%
                                         </h3>
                                         <small class="text-muted">vs normal</small>
                                     </div>
                                     @endforeach
                                 </div>
+                                @else
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle"></i> Tidak ada libur nasional pada bulan ini
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
-                @endif
 
                 <!-- Forecast (7 Days Ahead) -->
                 @if(isset($forecast_data) && count($forecast_data) > 0)
@@ -461,13 +483,14 @@
             console.error('Canvas element trendChart not found!');
         }
 
-        // 5. Holiday Impact Chart
+        // 5. Holiday Impact Chart - Initial
+        let holidayChartInstance = null;
         const holidayCanvas = document.getElementById('holidayImpactChart');
         if (holidayCanvas) {
             if (holidayImpact.length === 0) {
                 console.warn('Holiday impact data is empty!');
             }
-            new Chart(holidayCanvas, {
+            holidayChartInstance = new Chart(holidayCanvas, {
                 type: 'bar',
                 data: {
                     labels: holidayImpact.length > 0 ? holidayImpact.map(h => h.name) : ['Tahun Baru', 'Natal', 'Idul Adha', 'Kemerdekaan'],
@@ -517,6 +540,131 @@
         } else {
             console.error('Canvas element holidayImpactChart not found!');
         }
+
+        // Holiday Period Selector - Dynamic Update
+
+        function updateHolidayChart() {
+            const month = document.getElementById('holidayMonthSelector').value;
+            const year = document.getElementById('holidayYearSelector').value;
+
+            const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                               'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+            document.getElementById('holidayPeriodText').textContent = monthNames[month] + ' ' + year;
+
+            fetch(`/api/holiday-data?month=${month}&year=${year}`)
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Holiday data updated:', result);
+
+                    const data = result.data;
+                    const holidayContent = document.getElementById('holidayContent');
+
+                    if (data.length === 0) {
+                        holidayContent.innerHTML = `
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> Tidak ada libur nasional pada ${monthNames[month]} ${year}
+                            </div>
+                        `;
+                        if (holidayChartInstance) {
+                            holidayChartInstance.destroy();
+                            holidayChartInstance = null;
+                        }
+                        return;
+                    }
+
+                    // Update chart
+                    const holidayCanvas = document.getElementById('holidayImpactChart');
+                    if (!holidayCanvas) {
+                        holidayContent.innerHTML = `
+                            <div class="chart-container">
+                                <canvas id="holidayImpactChart"></canvas>
+                            </div>
+                            <div class="row mt-4" id="holidayStats"></div>
+                        `;
+                    }
+
+                    // Destroy existing chart
+                    if (holidayChartInstance) {
+                        holidayChartInstance.destroy();
+                    }
+
+                    // Create new chart
+                    const canvas = document.getElementById('holidayImpactChart');
+                    holidayChartInstance = new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(h => h.name),
+                            datasets: [
+                                {
+                                    label: 'Rata-rata Normal (Weekday)',
+                                    data: data.map(h => h.normal),
+                                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                                    borderColor: 'rgba(150, 150, 150, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Saat Libur',
+                                    data: data.map(h => h.holiday),
+                                    backgroundColor: 'rgba(72, 133, 237, 0.8)',
+                                    borderColor: 'rgba(72, 133, 237, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': ' + context.parsed.y + ' pengunjung';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                x: { grid: { display: false } }
+                            }
+                        }
+                    });
+
+                    // Update stats cards
+                    let statsHtml = '';
+                    data.forEach(holiday => {
+                        const colorClass = holiday.impact >= 100 ? 'success' : (holiday.impact >= 0 ? 'info' : 'danger');
+                        statsHtml += `
+                            <div class="col-lg-3 col-md-6 text-center mb-3">
+                                <h6 class="font-weight-bold">${holiday.name}</h6>
+                                <small class="text-muted d-block mb-1">${holiday.date}</small>
+                                <h3 class="text-${colorClass}">
+                                    ${holiday.impact >= 0 ? '+' : ''}${holiday.impact}%
+                                </h3>
+                                <small class="text-muted">vs normal</small>
+                            </div>
+                        `;
+                    });
+
+                    document.getElementById('holidayStats').innerHTML = statsHtml;
+                })
+                .catch(error => {
+                    console.error('Error fetching holiday data:', error);
+                });
+        }
+
+        // Event listeners for holiday selectors
+        document.getElementById('holidayYearSelector').addEventListener('change', updateHolidayChart);
+        document.getElementById('holidayMonthSelector').addEventListener('change', updateHolidayChart);
 
         // 6. Forecast Chart with Confidence Interval
         const forecastCanvas = document.getElementById('forecastChart');

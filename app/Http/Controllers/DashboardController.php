@@ -466,6 +466,22 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function getHolidayByPeriod(Request $request)
+    {
+        $month = $request->input('month', Carbon::now()->month);
+        $year = $request->input('year', Carbon::now()->year);
+
+        $data = $this->getHolidayImpact($month, $year);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'month' => $month,
+            'year' => $year,
+            'count' => count($data)
+        ]);
+    }
+
     private function getTrendInsight()
     {
         $trendData = $this->getTrendData();
@@ -485,25 +501,84 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getHolidayImpact()
+    private function getAllHolidays()
     {
-        $holidays = [
-            ['name' => 'Tahun Baru', 'date' => '2026-01-01'],
-            ['name' => 'Natal', 'date' => '2025-12-25'],
-            ['name' => 'Idul Adha', 'date' => '2025-06-17'],
-            ['name' => 'Kemerdekaan', 'date' => '2025-08-17'],
+        return [
+            // 2025
+            ['name' => 'Tahun Baru Masehi', 'date' => '2025-01-01', 'month' => 1, 'year' => 2025],
+            ['name' => 'Tahun Baru Imlek 2576', 'date' => '2025-01-29', 'month' => 1, 'year' => 2025],
+            ['name' => 'Isra Mikraj', 'date' => '2025-02-27', 'month' => 2, 'year' => 2025],
+            ['name' => 'Hari Suci Nyepi', 'date' => '2025-03-29', 'month' => 3, 'year' => 2025],
+            ['name' => 'Idul Fitri (Hari 1)', 'date' => '2025-03-30', 'month' => 3, 'year' => 2025],
+            ['name' => 'Idul Fitri (Hari 2)', 'date' => '2025-03-31', 'month' => 3, 'year' => 2025],
+            ['name' => 'Wafat Isa Al-Masih', 'date' => '2025-04-18', 'month' => 4, 'year' => 2025],
+            ['name' => 'Hari Buruh', 'date' => '2025-05-01', 'month' => 5, 'year' => 2025],
+            ['name' => 'Hari Raya Waisak', 'date' => '2025-05-12', 'month' => 5, 'year' => 2025],
+            ['name' => 'Kenaikan Isa Al-Masih', 'date' => '2025-05-29', 'month' => 5, 'year' => 2025],
+            ['name' => 'Hari Lahir Pancasila', 'date' => '2025-06-01', 'month' => 6, 'year' => 2025],
+            ['name' => 'Idul Adha', 'date' => '2025-06-06', 'month' => 6, 'year' => 2025],
+            ['name' => 'Tahun Baru Islam 1447 H', 'date' => '2025-06-27', 'month' => 6, 'year' => 2025],
+            ['name' => 'Hari Kemerdekaan RI', 'date' => '2025-08-17', 'month' => 8, 'year' => 2025],
+            ['name' => 'Maulid Nabi Muhammad SAW', 'date' => '2025-09-05', 'month' => 9, 'year' => 2025],
+            ['name' => 'Hari Raya Natal', 'date' => '2025-12-25', 'month' => 12, 'year' => 2025],
+
+            // 2026
+            ['name' => 'Tahun Baru Masehi', 'date' => '2026-01-01', 'month' => 1, 'year' => 2026],
+            ['name' => 'Cuti Bersama Tahun Baru', 'date' => '2026-01-02', 'month' => 1, 'year' => 2026],
+            ['name' => 'Cuti Bersama Imlek', 'date' => '2026-02-16', 'month' => 2, 'year' => 2026],
+            ['name' => 'Tahun Baru Imlek 2577', 'date' => '2026-02-17', 'month' => 2, 'year' => 2026],
+            ['name' => 'Hari Suci Nyepi (Hari 1)', 'date' => '2026-03-18', 'month' => 3, 'year' => 2026],
+            ['name' => 'Hari Suci Nyepi (Hari 2)', 'date' => '2026-03-19', 'month' => 3, 'year' => 2026],
+            ['name' => 'Idul Fitri 1447 H (Hari 1)', 'date' => '2026-03-20', 'month' => 3, 'year' => 2026],
+            ['name' => 'Idul Fitri (Hari 2)', 'date' => '2026-03-21', 'month' => 3, 'year' => 2026],
+            ['name' => 'Cuti Bersama Idul Fitri', 'date' => '2026-03-23', 'month' => 3, 'year' => 2026],
+            ['name' => 'Cuti Bersama Idul Fitri', 'date' => '2026-03-24', 'month' => 3, 'year' => 2026],
+            ['name' => 'Wafat Isa Al-Masih', 'date' => '2026-04-03', 'month' => 4, 'year' => 2026],
+            ['name' => 'Hari Buruh/Waisak', 'date' => '2026-05-01', 'month' => 5, 'year' => 2026],
+            ['name' => 'Kenaikan Isa Al-Masih', 'date' => '2026-05-14', 'month' => 5, 'year' => 2026],
+            ['name' => 'Hari Lahir Pancasila', 'date' => '2026-06-01', 'month' => 6, 'year' => 2026],
+            ['name' => 'Idul Adha 1447 H', 'date' => '2026-06-05', 'month' => 6, 'year' => 2026],
+            ['name' => 'Tahun Baru Islam 1448 H', 'date' => '2026-06-26', 'month' => 6, 'year' => 2026],
+            ['name' => 'Maulid Nabi Muhammad SAW', 'date' => '2026-08-04', 'month' => 8, 'year' => 2026],
+            ['name' => 'Hari Kemerdekaan RI', 'date' => '2026-08-17', 'month' => 8, 'year' => 2026],
+            ['name' => 'Hari Raya Natal', 'date' => '2026-12-25', 'month' => 12, 'year' => 2026],
         ];
+    }
+
+    private function getHolidayImpact($month = null, $year = null)
+    {
+        // Default ke bulan dan tahun sekarang
+        $month = $month ?? Carbon::now()->month;
+        $year = $year ?? Carbon::now()->year;
+
+        // Ambil semua libur dan filter berdasarkan bulan & tahun
+        $allHolidays = $this->getAllHolidays();
+        $holidays = array_filter($allHolidays, function($holiday) use ($month, $year) {
+            return $holiday['month'] == $month && $holiday['year'] == $year;
+        });
 
         $result = [];
+
+        // Jika tidak ada libur di bulan ini, return empty
+        if (empty($holidays)) {
+            return $result;
+        }
+
         foreach ($holidays as $holiday) {
+            $holidayDate = Carbon::parse($holiday['date']);
+
             $holidayVisitors = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->whereDate('orders.transaction_time', $holiday['date'])
-                ->sum('order_items.quantity') ?? 1;
+                ->sum('order_items.quantity') ?? 0;
+
+            // Ambil rata-rata weekday dari bulan yang sama dengan libur
+            $startOfMonth = $holidayDate->copy()->startOfMonth();
+            $endOfMonth = $holidayDate->copy()->endOfMonth();
 
             $normalAvg = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->where('orders.transaction_time', '>=', Carbon::now()->subMonth())
+                ->whereBetween('orders.transaction_time', [$startOfMonth, $endOfMonth])
                 ->whereNotIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
                 ->selectRaw('AVG(order_items.quantity) as avg')
                 ->value('avg') ?? 1;
@@ -512,6 +587,7 @@ class DashboardController extends Controller
 
             $result[] = [
                 'name' => $holiday['name'],
+                'date' => $holidayDate->format('d M Y'),
                 'holiday' => $holidayVisitors,
                 'normal' => round($normalAvg),
                 'impact' => $impact,
