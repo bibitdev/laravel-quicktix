@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/home', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
+    Route::get('/api/trend-data', [App\Http\Controllers\DashboardController::class, 'getTrendByPeriod'])->name('trend.data');
 
     // --- Shared Access (Admin & Staff): hanya index ---
     Route::get('users', [UserController::class, 'index'])->name('users.index');

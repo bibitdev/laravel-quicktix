@@ -12,66 +12,305 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        Carbon::setLocale('id');
+    }
+
+    private function getDayNameIndonesia($date)
+    {
+        $days = [
+            'Sunday' => 'Min',
+            'Monday' => 'Sen',
+            'Tuesday' => 'Sel',
+            'Wednesday' => 'Rab',
+            'Thursday' => 'Kam',
+            'Friday' => 'Jum',
+            'Saturday' => 'Sab'
+        ];
+        return $days[$date->format('l')];
+    }
+
+    private function getMonthNameIndonesia($date)
+    {
+        $months = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr',
+            5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Ags',
+            9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+        ];
+        return $months[(int)$date->format('n')];
+    }
+
     public function index()
     {
         $data = [
-            // Summary Metrics
+            // Summary Metrics with Comparison
             'total_visitors' => $this->getTotalVisitors(),
             'total_revenue' => $this->getTotalRevenue(),
             'avg_daily_visitors' => $this->getAvgDailyVisitors(),
             'peak_ratio' => $this->getPeakRatio(),
 
-            // Trend Analysis
+            // Daily metrics with comparison
+            'daily_visitors' => $this->getDailyVisitors(),
+            'daily_revenue' => $this->getDailyRevenue(),
+            'tickets_sold' => $this->getTicketsSold(),
+            'total_transactions' => $this->getTotalTransactions(),
+
+            // Comparison data
+            'visitor_comparison' => $this->getVisitorComparison(),
+            'revenue_comparison' => $this->getRevenueComparison(),
+
+            // Trend Analysis (1 month)
             'trend_data' => $this->getTrendData(),
             'trend_insight' => $this->getTrendInsight(),
+
+            // Insights
+            'insights' => $this->generateInsights(),
 
             // Holiday Impact
             'holiday_impact' => $this->getHolidayImpact(),
 
-            // Forecast
+            // Forecast (7 days)
             'forecast_data' => $this->getForecastData(),
             'forecast_details' => $this->getForecastDetails(),
+
+            // Charts data
+            'ticket_sales_trend' => $this->getTicketSalesTrend(),
+            'revenue_trend' => $this->getRevenueTrend(),
+            'payment_methods' => $this->getPaymentMethods(),
         ];
 
         return view('pages.dashboard', $data);
     }
 
+    private function getDailyVisitors()
+    {
+        return OrderItem::whereHas('order', function($q) {
+            $q->whereDate('transaction_time', Carbon::today());
+        })->sum('quantity') ?? 0;
+    }
+
+    private function getDailyRevenue()
+    {
+        return Transaction::whereDate('transaction_time', Carbon::today())->sum('amount') ?? 0;
+    }
+
+    private function getTicketsSold()
+    {
+        return OrderItem::whereHas('order', function($q) {
+            $q->whereDate('transaction_time', Carbon::today());
+        })->sum('quantity') ?? 0;
+    }
+
+    private function getTotalTransactions()
+    {
+        return Transaction::whereDate('transaction_time', Carbon::today())->count();
+    }
+
+    private function getVisitorComparison()
+    {
+        $today = $this->getDailyVisitors();
+        $yesterday = OrderItem::whereHas('order', function($q) {
+            $q->whereDate('transaction_time', Carbon::yesterday());
+        })->sum('quantity') ?? 1;
+
+        $lastMonth = OrderItem::whereHas('order', function($q) {
+            $q->whereMonth('transaction_time', Carbon::now()->subMonth()->month)
+                ->whereYear('transaction_time', Carbon::now()->subMonth()->year);
+        })->sum('quantity') ?? 1;
+
+        $difference = $today - $yesterday;
+        $percentage = $yesterday > 0 ? round((($today - $yesterday) / $yesterday) * 100, 2) : 0;
+
+        return [
+            'today' => $today,
+            'yesterday' => $yesterday,
+            'last_month' => $lastMonth,
+            'difference' => $difference,
+            'percentage' => $percentage,
+            'trend' => $difference >= 0 ? 'up' : 'down',
+        ];
+    }
+
+    private function getRevenueComparison()
+    {
+        $today = $this->getDailyRevenue();
+        $yesterday = Transaction::whereDate('transaction_time', Carbon::yesterday())->sum('amount') ?? 1;
+
+        $difference = $today - $yesterday;
+        $percentage = $yesterday > 0 ? round((($today - $yesterday) / $yesterday) * 100, 2) : 0;
+
+        return [
+            'today' => $today,
+            'yesterday' => $yesterday,
+            'difference' => $difference,
+            'percentage' => $percentage,
+            'trend' => $difference >= 0 ? 'up' : 'down',
+        ];
+    }
+
+    private function getTicketSalesTrend()
+    {
+        $data = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $total = OrderItem::whereHas('order', function($q) use ($date) {
+                $q->whereDate('transaction_time', $date);
+            })->sum('quantity') ?? 0;
+
+            $data[] = [
+                'date' => $date->format('D, d M'),
+                'total' => $total,
+            ];
+        }
+        return $data;
+    }
+
+    private function getRevenueTrend()
+    {
+        $data = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $total = Transaction::whereDate('transaction_time', $date)->sum('amount') ?? 0;
+
+            $data[] = [
+                'date' => $date->format('D, d M'),
+                'total' => $total,
+            ];
+        }
+        return $data;
+    }
+
+    private function getPaymentMethods()
+    {
+        return Transaction::select('payment_method', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
+            ->whereDate('transaction_time', '>=', Carbon::today()->subDays(7))
+            ->groupBy('payment_method')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'payment_method' => ucfirst($item->payment_method),
+                    'count' => $item->count,
+                    'total' => $item->total,
+                ];
+            })
+            ->toArray();
+    }
+
+    private function generateInsights()
+    {
+        $insights = [];
+        $visitorComp = $this->getVisitorComparison();
+        $revenueComp = $this->getRevenueComparison();
+        $trendData = $this->getTrendData();
+
+        // Visitor trend insight
+        if ($visitorComp['percentage'] > 10) {
+            $insights[] = [
+                'type' => 'success',
+                'icon' => '📈',
+                'title' => 'Pengunjung Meningkat',
+                'message' => 'Jumlah pengunjung hari ini meningkat ' . abs($visitorComp['percentage']) . '% dibanding kemarin (' . abs($visitorComp['difference']) . ' pengunjung lebih banyak).',
+            ];
+        } elseif ($visitorComp['percentage'] < -10) {
+            $insights[] = [
+                'type' => 'warning',
+                'icon' => '📉',
+                'title' => 'Pengunjung Menurun',
+                'message' => 'Jumlah pengunjung hari ini menurun ' . abs($visitorComp['percentage']) . '% dibanding kemarin (' . abs($visitorComp['difference']) . ' pengunjung lebih sedikit).',
+            ];
+        } else {
+            $insights[] = [
+                'type' => 'info',
+                'icon' => '📊',
+                'title' => 'Pengunjung Stabil',
+                'message' => 'Jumlah pengunjung hari ini relatif stabil dengan perubahan ' . $visitorComp['percentage'] . '% dibanding kemarin.',
+            ];
+        }
+
+        // Revenue trend insight
+        if ($revenueComp['percentage'] > 10) {
+            $insights[] = [
+                'type' => 'success',
+                'icon' => '💰',
+                'title' => 'Pendapatan Meningkat',
+                'message' => 'Pendapatan hari ini meningkat ' . abs($revenueComp['percentage']) . '% dibanding kemarin (Rp ' . number_format(abs($revenueComp['difference'])) . ' lebih tinggi).',
+            ];
+        } elseif ($revenueComp['percentage'] < -10) {
+            $insights[] = [
+                'type' => 'warning',
+                'icon' => '💸',
+                'title' => 'Pendapatan Menurun',
+                'message' => 'Pendapatan hari ini menurun ' . abs($revenueComp['percentage']) . '% dibanding kemarin (Rp ' . number_format(abs($revenueComp['difference'])) . ' lebih rendah).',
+            ];
+        }
+
+        // Peak day insight
+        $peakRatio = $this->getPeakRatio();
+        if ($peakRatio >= 1.5) {
+            $insights[] = [
+                'type' => 'info',
+                'icon' => '🏆',
+                'title' => 'Weekend Lebih Ramai',
+                'message' => 'Weekend ' . $peakRatio . 'x lebih ramai dibanding weekday. Siapkan staff tambahan untuk weekend.',
+            ];
+        }
+
+        // Monthly trend insight
+        if (count($trendData) >= 2) {
+            $current = $trendData[count($trendData) - 1]['total'];
+            $previous = $trendData[count($trendData) - 2]['total'];
+            $monthChange = $previous > 0 ? round((($current - $previous) / $previous) * 100) : 0;
+
+            if ($monthChange > 5) {
+                $insights[] = [
+                    'type' => 'success',
+                    'icon' => '📈',
+                    'title' => 'Trend Bulanan Positif',
+                    'message' => 'Pengunjung bulan ini naik ' . $monthChange . '% dibanding bulan lalu. Pertahankan strategi!',
+                ];
+            }
+        }
+
+        return $insights;
+    }
+
     private function getTotalVisitors()
     {
-        $sixMonthsAgo = Carbon::now()->subMonths(6);
-        return OrderItem::whereHas('order', function($q) use ($sixMonthsAgo) {
-            $q->where('transaction_time', '>=', $sixMonthsAgo);
+        $oneMonthAgo = Carbon::now()->subMonth();
+        return OrderItem::whereHas('order', function($q) use ($oneMonthAgo) {
+            $q->where('transaction_time', '>=', $oneMonthAgo);
         })->sum('quantity') ?? 0;
     }
 
     private function getTotalRevenue()
     {
-        $sixMonthsAgo = Carbon::now()->subMonths(6);
-        return Transaction::where('transaction_time', '>=', $sixMonthsAgo)->sum('amount') ?? 0;
+        $oneMonthAgo = Carbon::now()->subMonth();
+        return Transaction::where('transaction_time', '>=', $oneMonthAgo)->sum('amount') ?? 0;
     }
 
     private function getAvgDailyVisitors()
     {
-        $sixMonthsAgo = Carbon::now()->subMonths(6);
-        $days = Carbon::now()->diffInDays($sixMonthsAgo);
+        $oneMonthAgo = Carbon::now()->subMonth();
+        $days = Carbon::now()->diffInDays($oneMonthAgo);
         $total = $this->getTotalVisitors();
         return $days > 0 ? round($total / $days) : 0;
     }
 
     private function getPeakRatio()
     {
-        $sixMonthsAgo = Carbon::now()->subMonths(6);
+        $oneMonthAgo = Carbon::now()->subMonth();
 
         $weekendAvg = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.transaction_time', '>=', $sixMonthsAgo)
+            ->where('orders.transaction_time', '>=', $oneMonthAgo)
             ->whereIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
             ->selectRaw('AVG(order_items.quantity) as avg')
             ->value('avg') ?? 1;
 
         $weekdayAvg = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.transaction_time', '>=', $sixMonthsAgo)
+            ->where('orders.transaction_time', '>=', $oneMonthAgo)
             ->whereNotIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
             ->selectRaw('AVG(order_items.quantity) as avg')
             ->value('avg') ?? 1;
@@ -114,6 +353,119 @@ class DashboardController extends Controller
         return $data;
     }
 
+    public function getTrendByPeriod(Request $request)
+    {
+        $period = $request->input('period', '6_months');
+        $data = [];
+
+        switch ($period) {
+            case '6_months':
+                for ($i = 5; $i >= 0; $i--) {
+                    $month = Carbon::now()->subMonths($i);
+                    $startOfMonth = $month->copy()->startOfMonth();
+                    $endOfMonth = $month->copy()->endOfMonth();
+
+                    $total = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$startOfMonth, $endOfMonth])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $weekend = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$startOfMonth, $endOfMonth])
+                        ->whereIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $weekday = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$startOfMonth, $endOfMonth])
+                        ->whereNotIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $data[] = [
+                        'label' => $month->format('M Y'),
+                        'total' => $total,
+                        'weekend' => $weekend,
+                        'weekday' => $weekday,
+                    ];
+                }
+                break;
+
+            case '1_month_weekly':
+                $startOfMonth = Carbon::now()->startOfMonth();
+                $endOfMonth = Carbon::now()->endOfMonth();
+                $today = Carbon::now();
+
+                for ($week = 1; $week <= 4; $week++) {
+                    $weekStart = $startOfMonth->copy()->addWeeks($week - 1);
+                    $weekEnd = $weekStart->copy()->addDays(6);
+
+                    // Batasi weekEnd tidak melebihi akhir bulan atau hari ini
+                    if ($weekEnd > $endOfMonth) {
+                        $weekEnd = $endOfMonth;
+                    }
+                    if ($weekEnd > $today) {
+                        $weekEnd = $today;
+                    }
+
+                    // Skip hanya jika minggu belum dimulai
+                    if ($weekStart > $today) {
+                        continue;
+                    }
+
+                    $total = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$weekStart->startOfDay(), $weekEnd->endOfDay()])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $weekend = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$weekStart->startOfDay(), $weekEnd->endOfDay()])
+                        ->whereIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $weekday = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereBetween('orders.transaction_time', [$weekStart->startOfDay(), $weekEnd->endOfDay()])
+                        ->whereNotIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $data[] = [
+                        'label' => 'Minggu ' . $week . ' (' . $weekStart->format('d') . '-' . $weekEnd->format('d M') . ')',
+                        'total' => $total,
+                        'weekend' => $weekend,
+                        'weekday' => $weekday,
+                    ];
+                }
+                break;
+
+            case 'daily':
+                for ($i = 6; $i >= 0; $i--) {
+                    $date = Carbon::today()->subDays($i);
+                    $isWeekend = in_array($date->dayOfWeek, [0, 6]);
+
+                    $total = DB::table('order_items')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->whereDate('orders.transaction_time', $date)
+                        ->sum('order_items.quantity') ?? 0;
+
+                    $data[] = [
+                        'label' => $this->getDayNameIndonesia($date) . ', ' . $date->format('d M'),
+                        'total' => $total,
+                        'weekend' => $isWeekend ? $total : 0,
+                        'weekday' => !$isWeekend ? $total : 0,
+                    ];
+                }
+                break;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'period' => $period
+        ]);
+    }
+
     private function getTrendInsight()
     {
         $trendData = $this->getTrendData();
@@ -151,7 +503,7 @@ class DashboardController extends Controller
 
             $normalAvg = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->where('orders.transaction_time', '>=', Carbon::now()->subMonths(6))
+                ->where('orders.transaction_time', '>=', Carbon::now()->subMonth())
                 ->whereNotIn(DB::raw('DAYOFWEEK(orders.transaction_time)'), [1, 7])
                 ->selectRaw('AVG(order_items.quantity) as avg')
                 ->value('avg') ?? 1;
@@ -191,7 +543,7 @@ class DashboardController extends Controller
             $upper = round($prediction + (2 * $stdDev));
 
             $forecast[] = [
-                'day' => $date->translatedFormat('D'),
+                'day' => $this->getDayNameIndonesia($date),
                 'date' => $date->format('Y-m-d'),
                 'prediction' => $prediction,
                 'lower' => $lower,
@@ -209,8 +561,9 @@ class DashboardController extends Controller
         $details = [];
 
         foreach ($forecast as $f) {
+            $date = Carbon::parse($f['date']);
             $details[] = [
-                'day' => Carbon::parse($f['date'])->translatedFormat('D, d M'),
+                'day' => $this->getDayNameIndonesia($date) . ', ' . $date->format('d') . ' ' . $this->getMonthNameIndonesia($date),
                 'prediction' => $f['prediction'],
                 'range' => $f['lower'] . ' - ' . $f['upper'],
                 'kasir' => ceil($f['prediction'] / 25),

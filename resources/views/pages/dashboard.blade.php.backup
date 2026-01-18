@@ -15,8 +15,7 @@
         }
         .chart-container {
             position: relative;
-            height: 250px;
-            width: 100%;
+            height: 300px;
         }
         .card-header-action select {
             height: 35px;
@@ -106,7 +105,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Pengunjung</h4>
+                                    <h4>Total Pengunjung (6Jan)</h4>
                                 </div>
                                 <div class="card-body">
                                     {{ number_format($total_visitors) }}
@@ -129,7 +128,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Pendapatan</h4>
+                                    <h4>Pendapatan (6Jan)</h4>
                                 </div>
                                 <div class="card-body">
                                     Rp {{ number_format($total_revenue / 1000000, 1) }} Jt
@@ -211,28 +210,22 @@
                 </div>
                 @endif
 
-                <!-- Trend Analysis (Dynamic Period) -->
+                <!-- Trend Analysis (6 Months) -->
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="trendTitle">Tren Pengunjung 6 Bulan Terakhir</h4>
+                                <h4>Tren Pengunjung 6 Bulan Terakhir</h4>
                                 <div class="card-header-action">
-                                    <select id="periodSelector" class="form-control" style="width: auto; display: inline-block;">
-                                        <option value="6_months">6 Bulan Terakhir</option>
-                                        <option value="1_month_weekly">1 Bulan (Per Minggu)</option>
-                                        <option value="daily">7 Hari Terakhir</option>
-                                    </select>
+                                    <span class="badge badge-info">Analisis time series untuk identifikasi pola musiman</span>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="trendChart"></canvas>
-                                </div>
+                                <canvas id="trendChart" height="100"></canvas>
                                 @if(isset($trend_insight))
-                                <div class="alert alert-info mt-3 mb-0" id="trendInsight">
-                                    <strong><i class="fas fa-chart-line"></i> Insight:</strong>
-                                    Puncak pengunjung terjadi di <strong>{{ $trend_insight['peak_month'] ?? '-' }}</strong>.
+                                <div class="alert alert-info mt-3 mb-0">
+                                    <strong><i class="fas fa-chart-line"></i> Insight:</strong> 
+                                    Puncak pengunjung terjadi di <strong>{{ $trend_insight['peak_month'] ?? '-' }}</strong>. 
                                     @if($trend_insight['last_month_change'] > 0)
                                         Bulan ini naik <strong>{{ $trend_insight['last_month_change'] }}%</strong> dibanding bulan lalu.
                                     @elseif($trend_insight['last_month_change'] < 0)
@@ -259,9 +252,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="holidayImpactChart"></canvas>
-                                </div>
+                                <canvas id="holidayImpactChart" height="80"></canvas>
                                 <div class="row mt-4">
                                     @foreach($holiday_impact as $holiday)
                                     <div class="col-lg-3 col-md-6 text-center">
@@ -291,11 +282,9 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="forecastChart"></canvas>
-                                </div>
+                                <canvas id="forecastChart" height="90"></canvas>
                                 <div class="alert alert-warning mt-3 mb-0">
-                                    <strong><i class="fas fa-info-circle"></i> Interpretasi:</strong>
+                                    <strong><i class="fas fa-info-circle"></i> Interpretasi:</strong> 
                                     Area abu-gray menunjukkan range kemungkinan (CI 95%). Weekend diprediksi 14-14 pengunjung.
                                 </div>
                             </div>
@@ -343,7 +332,7 @@
                                             <tr class="bg-info text-white">
                                                 <td colspan="2"><strong>Total Minggu</strong></td>
                                                 <td colspan="3">
-                                                    <strong>{{ array_sum(array_column($forecast_details, 'prediction')) }} orang</strong> |
+                                                    <strong>{{ array_sum(array_column($forecast_details, 'prediction')) }} orang</strong> | 
                                                     <strong>Rp {{ number_format(array_sum(array_column($forecast_details, 'revenue')) / 1000000, 1) }} Jt</strong>
                                                 </td>
                                             </tr>
@@ -359,6 +348,48 @@
                 </div>
                 @endif
 
+                </div>
+
+                <!-- Charts (Daily) -->
+                <div class="row">
+                    <!-- Visitor Trends (Tiket Terjual) -->
+                    <div class="col-lg-6 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Tren Penjualan Tiket (7 Hari Terakhir)</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="visitorTrend" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Revenue -->
+                    <div class="col-lg-6 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Tren Pendapatan (7 Hari Terakhir)</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="salesTrend" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Payment Methods -->
+                    <div class="col-lg-12 col-md-12 col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Transaksi per Metode Pembayaran</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="paymentMethods" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
@@ -379,28 +410,166 @@
         const forecastData = @json($forecast_data ?? []);
 
         console.log('Chart.js loaded:', typeof Chart !== 'undefined');
-        console.log('Ticket Sales Trend:', ticketSalesTrend);
-        console.log('Revenue Trend:', revenueTrend);
-        console.log('Trend Data (6 months):', trendData);
-        console.log('Holiday Impact:', holidayImpact);
-        console.log('Forecast Data:', forecastData);
-        console.log('Payment Methods:', paymentMethods);
 
-        // 4. Trend Chart (6 Months) - Initial Chart
-        let trendChartInstance = null;
-        const trendCanvas = document.getElementById('trendChart');
-        if (trendCanvas) {
-            if (trendData.length === 0) {
-                console.warn('Trend data is empty!');
-            }
-            trendChartInstance = new Chart(trendCanvas, {
+        // Extract dates and totals for charts
+        const visitorData = {
+            dates: ticketSalesTrend.map(item => item.date),
+            counts: ticketSalesTrend.map(item => item.total)
+        };
+
+        const salesData = {
+            dates: revenueTrend.map(item => item.date),
+            totals: revenueTrend.map(item => item.total)
+        };
+
+        const paymentData = {
+            methods: paymentMethods.map(item => item.payment_method),
+            counts: paymentMethods.map(item => item.count),
+            totals: paymentMethods.map(item => item.total)
+        };
+
+        // 1. Visitor Trend Chart (7 Days)
+        const visitorCanvas = document.getElementById('visitorTrend');
+        if (visitorCanvas) {
+            new Chart(visitorCanvas, {
                 type: 'line',
                 data: {
-                    labels: trendData.length > 0 ? trendData.map(item => item.month) : ['Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025', 'Jan 2026'],
+                    labels: visitorData.dates.length > 0 ? visitorData.dates : ['Belum ada data'],
+                    datasets: [{
+                        label: 'Jumlah Tiket Terjual',
+                        data: visitorData.counts.length > 0 ? visitorData.counts : [0],
+                        borderColor: '#6777ef',
+                        backgroundColor: 'rgba(103, 119, 239, 0.15)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6777ef',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Tiket: ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 5 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 2. Sales Trend Chart (7 Days)
+        const salesCanvas = document.getElementById('salesTrend');
+        if (salesCanvas) {
+            new Chart(salesCanvas, {
+                type: 'line',
+                data: {
+                    labels: salesData.dates.length > 0 ? salesData.dates : ['Belum ada data'],
+                    datasets: [{
+                        label: 'Total Pendapatan',
+                        data: salesData.totals.length > 0 ? salesData.totals : [0],
+                        borderColor: '#48c78e',
+                        backgroundColor: 'rgba(72, 199, 142, 0.15)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#48c78e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                                    return value;
+                                }
+                            }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 3. Payment Methods Chart
+        const paymentCanvas = document.getElementById('paymentMethods');
+        if (paymentCanvas) {
+            new Chart(paymentCanvas, {
+                type: 'bar',
+                data: {
+                    labels: paymentData.methods.length > 0 ? paymentData.methods : ['Belum ada data'],
+                    datasets: [{
+                        label: 'Jumlah Transaksi',
+                        data: paymentData.counts.length > 0 ? paymentData.counts : [0],
+                        backgroundColor: ['rgba(103, 119, 239, 0.8)', 'rgba(72, 199, 142, 0.8)', 'rgba(255, 159, 64, 0.8)'],
+                        borderColor: ['rgba(103, 119, 239, 1)', 'rgba(72, 199, 142, 1)', 'rgba(255, 159, 64, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' transaksi';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 10 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 4. Trend Chart (6 Months)
+        const trendCanvas = document.getElementById('trendChart');
+        if (trendCanvas && trendData.length > 0) {
+            new Chart(trendCanvas, {
+                type: 'line',
+                data: {
+                    labels: trendData.map(item => item.month),
                     datasets: [
                         {
                             label: 'Total Pengunjung',
-                            data: trendData.length > 0 ? trendData.map(item => item.total) : [0, 0, 0, 0, 0, 0],
+                            data: trendData.map(item => item.total),
                             borderColor: '#34395e',
                             backgroundColor: 'rgba(52, 57, 94, 0.1)',
                             borderWidth: 3,
@@ -411,7 +580,7 @@
                         },
                         {
                             label: 'Weekend',
-                            data: trendData.length > 0 ? trendData.map(item => item.weekend) : [0, 0, 0, 0, 0, 0],
+                            data: trendData.map(item => item.weekend),
                             borderColor: '#6777ef',
                             backgroundColor: 'rgba(103, 119, 239, 0.1)',
                             borderWidth: 2,
@@ -421,7 +590,7 @@
                         },
                         {
                             label: 'Weekday',
-                            data: trendData.length > 0 ? trendData.map(item => item.weekday) : [0, 0, 0, 0, 0, 0],
+                            data: trendData.map(item => item.weekday),
                             borderColor: '#48c78e',
                             backgroundColor: 'rgba(72, 199, 142, 0.1)',
                             borderWidth: 2,
@@ -435,53 +604,34 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true, position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y + ' pengunjung';
-                                }
-                            }
-                        }
+                        legend: { display: true, position: 'top' }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        },
+                        y: { beginAtZero: true },
                         x: { grid: { display: false } }
                     }
                 }
             });
-        } else {
-            console.error('Canvas element trendChart not found!');
         }
 
         // 5. Holiday Impact Chart
         const holidayCanvas = document.getElementById('holidayImpactChart');
-        if (holidayCanvas) {
-            if (holidayImpact.length === 0) {
-                console.warn('Holiday impact data is empty!');
-            }
+        if (holidayCanvas && holidayImpact.length > 0) {
             new Chart(holidayCanvas, {
                 type: 'bar',
                 data: {
-                    labels: holidayImpact.length > 0 ? holidayImpact.map(h => h.name) : ['Tahun Baru', 'Natal', 'Idul Adha', 'Kemerdekaan'],
+                    labels: holidayImpact.map(h => h.name),
                     datasets: [
                         {
                             label: 'Rata-rata Normal',
-                            data: holidayImpact.length > 0 ? holidayImpact.map(h => h.normal) : [0, 0, 0, 0],
+                            data: holidayImpact.map(h => h.normal),
                             backgroundColor: 'rgba(200, 200, 200, 0.5)',
                             borderColor: 'rgba(150, 150, 150, 1)',
                             borderWidth: 1
                         },
                         {
                             label: 'Saat Libur',
-                            data: holidayImpact.length > 0 ? holidayImpact.map(h => h.holiday) : [0, 0, 0, 0],
+                            data: holidayImpact.map(h => h.holiday),
                             backgroundColor: 'rgba(72, 133, 237, 0.8)',
                             borderColor: 'rgba(72, 133, 237, 1)',
                             borderWidth: 1
@@ -492,46 +642,27 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true, position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y + ' pengunjung';
-                                }
-                            }
-                        }
+                        legend: { display: true, position: 'top' }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        },
+                        y: { beginAtZero: true },
                         x: { grid: { display: false } }
                     }
                 }
             });
-        } else {
-            console.error('Canvas element holidayImpactChart not found!');
         }
 
         // 6. Forecast Chart with Confidence Interval
         const forecastCanvas = document.getElementById('forecastChart');
-        if (forecastCanvas) {
-            if (forecastData.length === 0) {
-                console.warn('Forecast data is empty!');
-            }
+        if (forecastCanvas && forecastData.length > 0) {
             new Chart(forecastCanvas, {
                 type: 'line',
                 data: {
-                    labels: forecastData.length > 0 ? forecastData.map(f => f.day) : ['Hari 1', 'Hari 2', 'Hari 3', 'Hari 4', 'Hari 5', 'Hari 6', 'Hari 7'],
+                    labels: forecastData.map(f => f.day),
                     datasets: [
                         {
                             label: 'Upper Bound (97.5%)',
-                            data: forecastData.length > 0 ? forecastData.map(f => f.upper) : [0, 0, 0, 0, 0, 0, 0],
+                            data: forecastData.map(f => f.upper),
                             borderColor: 'rgba(200, 200, 200, 0.3)',
                             backgroundColor: 'rgba(200, 200, 200, 0.1)',
                             borderWidth: 1,
@@ -541,20 +672,20 @@
                         },
                         {
                             label: 'Prediksi',
-                            data: forecastData.length > 0 ? forecastData.map(f => f.prediction) : [0, 0, 0, 0, 0, 0, 0],
+                            data: forecastData.map(f => f.prediction),
                             borderColor: '#4885ed',
                             backgroundColor: 'rgba(72, 133, 237, 0.1)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.4,
                             pointRadius: 5,
-                            pointBackgroundColor: forecastData.length > 0 ? forecastData.map(f => f.is_weekend || f.is_holiday ? '#4885ed' : '#48c78e') : '#4885ed',
+                            pointBackgroundColor: forecastData.map(f => f.is_weekend || f.is_holiday ? '#4885ed' : '#48c78e'),
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2
                         },
                         {
                             label: 'Lower Bound (2.5%)',
-                            data: forecastData.length > 0 ? forecastData.map(f => f.lower) : [0, 0, 0, 0, 0, 0, 0],
+                            data: forecastData.map(f => f.lower),
                             borderColor: 'rgba(200, 200, 200, 0.3)',
                             backgroundColor: 'rgba(200, 200, 200, 0.1)',
                             borderWidth: 1,
@@ -573,162 +704,222 @@
                             callbacks: {
                                 label: function(context) {
                                     if (context.datasetIndex === 1) {
-                                        return 'Prediksi: ' + Math.round(context.parsed.y) + ' pengunjung';
+                                        return 'Prediksi: ' + context.parsed.y + ' pengunjung';
                                     }
-                                    return context.dataset.label + ': ' + Math.round(context.parsed.y);
+                                    return context.dataset.label + ': ' + context.parsed.y;
                                 }
                             }
                         }
                     },
                     scales: {
-                        y: {
+                        y: { 
                             beginAtZero: true,
-                            title: { display: true, text: 'Jumlah Pengunjung' },
-                            ticks: {
-                                callback: function(value) {
-                                    return Math.round(value).toLocaleString();
-                                }
-                            }
+                            title: { display: true, text: 'Jumlah Pengunjung' }
                         },
-                        x: {
+                        x: { 
                             grid: { display: false },
                             title: { display: true, text: 'Hari' }
                         }
                     }
                 }
             });
-        } else {
-            console.error('Canvas element forecastChart not found!');
         }
 
-        // Period Selector - Dynamic Trend Chart Update
+        console.log('All charts initialized!');
+    </script>
+@endpush
 
-        function updateTrendChart(period) {
-            const titles = {
-                '6_months': 'Tren Pengunjung 6 Bulan Terakhir',
-                '1_month_weekly': 'Tren Pengunjung Bulan Ini (Per Minggu)',
-                'daily': 'Tren Pengunjung 7 Hari Terakhir'
-            };
-
-            document.getElementById('trendTitle').textContent = titles[period] || titles['6_months'];
-
-            fetch('/api/trend-data?period=' + period)
-                .then(response => response.json())
-                .then(result => {
-                    console.log('Trend data updated:', result);
-
-                    const data = result.data;
-
-                    // Destroy existing chart
-                    if (trendChartInstance) {
-                        trendChartInstance.destroy();
-                    }
-
-                    // Create new chart
-                    const trendCanvas = document.getElementById('trendChart');
-                    trendChartInstance = new Chart(trendCanvas, {
-                        type: 'line',
-                        data: {
-                            labels: data.map(item => item.label),
-                            datasets: [
-                                {
-                                    label: 'Total Pengunjung',
-                                    data: data.map(item => item.total),
-                                    borderColor: '#34395e',
-                                    backgroundColor: 'rgba(52, 57, 94, 0.1)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointRadius: 5,
-                                    pointBackgroundColor: '#34395e'
-                                },
-                                {
-                                    label: 'Weekend',
-                                    data: data.map(item => item.weekend),
-                                    borderColor: '#6777ef',
-                                    backgroundColor: 'rgba(103, 119, 239, 0.1)',
-                                    borderWidth: 2,
-                                    fill: false,
-                                    tension: 0.4,
-                                    pointRadius: 4
-                                },
-                                {
-                                    label: 'Weekday',
-                                    data: data.map(item => item.weekday),
-                                    borderColor: '#48c78e',
-                                    backgroundColor: 'rgba(72, 199, 142, 0.1)',
-                                    borderWidth: 2,
-                                    fill: false,
-                                    tension: 0.4,
-                                    pointRadius: 4
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: true, position: 'top' },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return context.dataset.label + ': ' + context.parsed.y + ' pengunjung';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value.toLocaleString();
-                                        }
-                                    }
-                                },
-                                x: { grid: { display: false } }
-                            }
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
                         }
-                    });
-
-                    // Update insight
-                    updateTrendInsight(data, period);
-                })
-                .catch(error => {
-                    console.error('Error fetching trend data:', error);
-                });
-        }
-
-        function updateTrendInsight(data, period) {
-            const insightDiv = document.getElementById('trendInsight');
-            if (!insightDiv) return;
-
-            let insightHtml = '<strong><i class=\"fas fa-chart-line\"></i> Insight:</strong> ';
-
-            if (data.length > 0) {
-                const maxData = data.reduce((max, item) => item.total > max.total ? item : max, data[0]);
-                const totalVisitors = data.reduce((sum, item) => sum + item.total, 0);
-                const avgVisitors = Math.round(totalVisitors / data.length);
-
-                if (period === '6_months') {
-                    insightHtml += `Puncak pengunjung terjadi di <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per bulan.`;
-                } else if (period === '1_month_weekly') {
-                    insightHtml += `Minggu tersibuk adalah <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per minggu.`;
-                } else if (period === 'daily') {
-                    insightHtml += `Hari tersibuk adalah <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per hari.`;
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
                 }
             }
-
-            insightDiv.innerHTML = insightHtml;
+        });
         }
 
-        // Event listener for period selector
-        document.getElementById('periodSelector').addEventListener('change', function() {
-            updateTrendChart(this.value);
+        // Sales Trend Chart (Pendapatan)
+        const salesCanvas = document.getElementById('salesTrend');
+        if (!salesCanvas) {
+            console.error('Canvas element salesTrend not found!');
+        } else {
+            console.log('Creating salesTrend chart...');
+            const salesTrend = new Chart(salesCanvas, {
+            type: 'line',
+            data: {
+                labels: salesData.dates.length > 0 ? salesData.dates : ['Belum ada data'],
+                datasets: [{
+                    label: 'Total Pendapatan',
+                    data: salesData.totals.length > 0 ? salesData.totals : [0],
+                    borderColor: '#48c78e',
+                    backgroundColor: 'rgba(72, 199, 142, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#48c78e',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'k';
+                                }
+                                return value;
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
         });
+        }
+
+        // Payment Methods Chart (Horizontal Bar Chart)
+        const paymentCanvas = document.getElementById('paymentMethods');
+        if (!paymentCanvas) {
+            console.error('Canvas element paymentMethods not found!');
+        } else {
+            console.log('Creating paymentMethods chart...');
+            const paymentMethodsChart = new Chart(paymentCanvas, {
+            type: 'bar',
+            data: {
+                labels: paymentData.methods.length > 0 ? paymentData.methods : ['Belum ada data'],
+                datasets: [{
+                    label: 'Jumlah Transaksi',
+                    data: paymentData.counts.length > 0 ? paymentData.counts : [0],
+                    backgroundColor: [
+                        'rgba(103, 119, 239, 0.8)',
+                        'rgba(72, 199, 142, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(103, 119, 239, 1)',
+                        'rgba(72, 199, 142, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' transaksi';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+        }
 
         console.log('All charts initialized!');
     </script>
