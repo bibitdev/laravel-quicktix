@@ -45,8 +45,9 @@ class DashboardController extends Controller
      */
     private function getDailyVisitors($date)
     {
-        return OrderItem::whereDate('created_at', $date)
-            ->sum('quantity');
+        return OrderItem::whereHas('order', function($q) use ($date) {
+            $q->whereDate('transaction_time', $date);
+        })->sum('quantity');
     }
 
     /**
@@ -54,7 +55,7 @@ class DashboardController extends Controller
      */
     private function getDailyRevenue($date)
     {
-        return Transaction::whereDate('created_at', $date)
+        return Transaction::whereDate('transaction_time', $date)
             ->sum('amount');
     }
 
@@ -63,8 +64,9 @@ class DashboardController extends Controller
      */
     private function getTicketsSold($date)
     {
-        return OrderItem::whereDate('created_at', $date)
-            ->sum('quantity');
+        return OrderItem::whereHas('order', function($q) use ($date) {
+            $q->whereDate('transaction_time', $date);
+        })->sum('quantity');
     }
 
     /**
@@ -72,7 +74,7 @@ class DashboardController extends Controller
      */
     private function getTotalTransactions($date)
     {
-        return Transaction::whereDate('created_at', $date)
+        return Transaction::whereDate('transaction_time', $date)
             ->count();
     }
 
@@ -84,8 +86,10 @@ class DashboardController extends Controller
         $endDate = Carbon::today();
         $startDate = Carbon::today()->subDays(6);
 
-        $data = OrderItem::selectRaw('DATE(created_at) as date, SUM(quantity) as total')
-            ->whereBetween('created_at', [$startDate, $endDate->endOfDay()])
+        $data = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->selectRaw('DATE(orders.transaction_time) as date, SUM(order_items.quantity) as total')
+            ->whereBetween('orders.transaction_time', [$startDate, $endDate->endOfDay()])
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
@@ -113,8 +117,8 @@ class DashboardController extends Controller
         $endDate = Carbon::today();
         $startDate = Carbon::today()->subDays(6);
 
-        $data = Transaction::selectRaw('DATE(created_at) as date, SUM(amount) as total')
-            ->whereBetween('created_at', [$startDate, $endDate->endOfDay()])
+        $data = Transaction::selectRaw('DATE(transaction_time) as date, SUM(amount) as total')
+            ->whereBetween('transaction_time', [$startDate, $endDate->endOfDay()])
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();

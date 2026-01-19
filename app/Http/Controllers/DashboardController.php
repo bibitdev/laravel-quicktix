@@ -614,16 +614,11 @@ class DashboardController extends Controller
             }
 
             $prediction = max($prediction, 3);
-            $stdDev = $isWeekend ? $baseData['weekend_std'] : $baseData['weekday_std'];
-            $lower = max(0, round($prediction - (2 * $stdDev)));
-            $upper = round($prediction + (2 * $stdDev));
 
             $forecast[] = [
                 'day' => $this->getDayNameIndonesia($date),
                 'date' => $date->format('Y-m-d'),
                 'prediction' => $prediction,
-                'lower' => $lower,
-                'upper' => $upper,
                 'is_weekend' => $isWeekend,
                 'is_holiday' => $isHoliday,
             ];
@@ -638,12 +633,13 @@ class DashboardController extends Controller
 
         foreach ($forecast as $f) {
             $date = Carbon::parse($f['date']);
+            // Harga tiket: Weekend/Holiday = 15k, Weekday = 10k
+            $ticketPrice = ($f['is_weekend'] || $f['is_holiday']) ? 15000 : 10000;
+
             $details[] = [
                 'day' => $this->getDayNameIndonesia($date) . ', ' . $date->format('d') . ' ' . $this->getMonthNameIndonesia($date),
                 'prediction' => $f['prediction'],
-                'range' => $f['lower'] . ' - ' . $f['upper'],
-                'kasir' => ceil($f['prediction'] / 25),
-                'revenue' => $f['prediction'] * 25000,
+                'revenue' => $f['prediction'] * $ticketPrice,
                 'is_weekend' => $f['is_weekend'],
                 'is_holiday' => $f['is_holiday'],
             ];

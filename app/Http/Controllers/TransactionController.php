@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
@@ -54,17 +55,34 @@ class TransactionController extends Controller
     // Buat transaksi + generate ticket_number + QR + simpan PDF
     public function print(Request $request)
     {
+        // Log incoming request
+        Log::info('=== TRANSACTION PRINT REQUEST START ===');
+        Log::info('Request Method: ' . $request->method());
+        Log::info('Request URL: ' . $request->fullUrl());
+        Log::info('Request Body: ', $request->all());
+        Log::info('Order Items: ', $request->order_items ?? []);
+
         // Validasi request dari Flutter
         $request->validate([
             'amount' => 'required|numeric',
             'payment_method' => 'required|string',
             'transaction_time' => 'required',
             'cashier_id' => 'required',
-            'order_items' => 'sometimes|array',
-            'order_items.*.product_id' => 'required_with:order_items|exists:products,id',
-            'order_items.*.quantity' => 'required_with:order_items|integer|min:1',
-            'order_items.*.total_price' => 'required_with:order_items|numeric',
+            'order_items' => 'required|array|min:1',
+            'order_items.*.product_id' => 'required|exists:products,id',
+            'order_items.*.quantity' => 'required|integer|min:1',
+            'order_items.*.total_price' => 'required|numeric',
         ]);
+
+        // Log warning jika tidak ada order items
+        if (!$request->has('order_items') || empty($request->order_items)) {
+            Log::error('CRITICAL: Transaction submitted WITHOUT order_items!', [
+                'request' => $request->all()
+            ]);
+            return response()->json([
+                'error' => 'order_items is required and must contain at least 1 item'
+            ], 400);
+        }
 
         // Hitung jumlah transaksi hari ini
         $countToday = Transaction::whereDate('created_at', now())->count() + 1;
@@ -74,7 +92,7 @@ class TransactionController extends Controller
 
         // Buat Order dulu untuk tracking di dashboard
         $order = Order::create([
-            'transaction_time' => $request->transaction_time,
+            'transaction_time' => Carbon::parse($request->transaction_time)->format('Y-m-d H:i:s'),
             'total_price' => $request->amount,
             'total_item' => $request->total_item ?? 1,
             'payment_amount' => $request->amount,
@@ -83,50 +101,31 @@ class TransactionController extends Controller
             'payment_method' => $request->payment_method,
         ]);
 
+        Log::info('Order Created in Print: ', [
+            'order_id' => $order->id,
+            'total_price' => $order->total_price,
+            'total_item' => $order->total_item
+        ]);
+
         // Simpan order items dan kurangi stok
-        if ($request->has('order_items') && is_array($request->order_items)) {
-            // Jika ada data order_items dari request
-            foreach ($request->order_items as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'total_price' => $item['total_price'] * $item['quantity'],
-                ]);
+        foreach ($request->order_items as $item) {
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'total_price' => $item['total_price'] * $item['quantity'],
+            ]);
 
-                // Kurangi stok produk
-                $product = Product::find($item['product_id']);
-                if ($product) {
-                    $product->stock -= $item['quantity'];
-                    $product->save();
-                }
-            }
-        } else {
-            // Fallback: Jika tidak ada order_items, coba deteksi dari amount dan product_id
-            // Atau buat order item default berdasarkan total_item
-            $totalItem = $request->total_item ?? 1;
+            Log::info('OrderItem Created in Print: ', [
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'total_price' => $item['total_price'] * $item['quantity']
+            ]);
 
-            // Cari produk yang sesuai dengan harga
-            if ($request->has('product_id')) {
-                $product = Product::find($request->product_id);
-            } else {
-                // Coba cari produk berdasarkan harga
-                $product = Product::where('price', '<=', $request->amount)
-                    ->orderBy('price', 'desc')
-                    ->first();
-            }
-
+            // Kurangi stok produk
+            $product = Product::find($item['product_id']);
             if ($product) {
-                $quantity = $totalItem;
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'total_price' => $request->amount,
-                ]);
-
-                // Kurangi stok produk
-                $product->stock -= $quantity;
+                $product->stock -= $item['quantity'];
                 $product->save();
             }
         }
@@ -136,7 +135,7 @@ class TransactionController extends Controller
             'ticket_number' => $ticketNumber,
             'amount' => $request->amount,
             'payment_method' => $request->payment_method,
-            'transaction_time' => $request->transaction_time,
+            'transaction_time' => Carbon::parse($request->transaction_time)->format('Y-m-d H:i:s'),
             'cashier_id' => $request->cashier_id,
         ]);
 
@@ -172,9 +171,21 @@ class TransactionController extends Controller
         $pdfPath = 'pdf/receipt_' . $transaction->ticket_number . '.pdf';
         Storage::disk('public')->put($pdfPath, $pdf->output());
 
-        return response()->json([
-            'pdf_url' => asset('storage/' . $pdfPath),
+        $response = ['pdf_url' => asset('storage/' . $pdfPath)];
+
+        Log::info('Transaction Print Summary: ', [
+            'transaction_id' => $transaction->id,
+            'ticket_number' => $transaction->ticket_number,
+            'order_id' => $order->id,
+            'total_order_items' => OrderItem::where('order_id', $order->id)->count(),
+            'total_quantity' => OrderItem::where('order_id', $order->id)->sum('quantity'),
+            'pdf_path' => $pdfPath
         ]);
+
+        Log::info('TRANSACTION PRINT RESPONSE: ', $response);
+        Log::info('=== TRANSACTION PRINT REQUEST END ===');
+
+        return response()->json($response);
     }
 
     // Download recap bulanan

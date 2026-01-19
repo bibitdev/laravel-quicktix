@@ -132,7 +132,7 @@
                                     <h4>Pendapatan</h4>
                                 </div>
                                 <div class="card-body">
-                                    Rp {{ number_format($total_revenue / 1000000, 1) }} Jt
+                                    Rp {{ number_format($total_revenue / 1000000, 2) }} Jt
                                 </div>
                                 @if(isset($revenue_comparison))
                                 <span class="comparison-badge badge-{{ $revenue_comparison['trend'] }}">
@@ -175,7 +175,7 @@
                                 <div class="card-body">
                                     {{ $peak_ratio }}x
                                 </div>
-                                <small class="text-muted">weekend vs weekday</small>
+                                <small class="text-muted">hari libur vs hari biasa</small>
                             </div>
                         </div>
                     </div>
@@ -238,7 +238,7 @@
                                     @elseif($trend_insight['last_month_change'] < 0)
                                         Bulan ini turun <strong>{{ abs($trend_insight['last_month_change']) }}%</strong> dibanding bulan lalu.
                                     @else
-                                        Weekend konsisten <strong>1x lebih ramai</strong> dari weekday.
+                                        Hari libur konsisten <strong>1x lebih ramai</strong> dari hari biasa.
                                     @endif
                                 </div>
                                 @endif
@@ -308,9 +308,6 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4>Prediksi Minggu Depan ({{ now()->addDay()->format('d') }}-{{ now()->addDays(7)->format('d M Y') }})</h4>
-                                <div class="card-header-action">
-                                    <span class="prediction-badge badge-confidence-high">Dengan confidence interval 95%</span>
-                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
@@ -318,7 +315,7 @@
                                 </div>
                                 <div class="alert alert-warning mt-3 mb-0">
                                     <strong><i class="fas fa-info-circle"></i> Interpretasi:</strong>
-                                    Area abu-gray menunjukkan range kemungkinan (CI 95%). Weekend diprediksi 14-14 pengunjung.
+                                    Area abu-gray menunjukkan range kemungkinan (CI 95%). Hari libur diprediksi 14-14 pengunjung.
                                 </div>
                             </div>
                         </div>
@@ -326,7 +323,7 @@
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header">
-                                <h4>Detail Prediksi & Rekomendasi Operasional</h4>
+                                <h4>Detail Prediksi</h4>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
@@ -335,8 +332,6 @@
                                             <tr>
                                                 <th>Hari</th>
                                                 <th>Prediksi</th>
-                                                <th>Range (95% CI)</th>
-                                                <th>Kasir</th>
                                                 <th>Est. Pendapatan</th>
                                             </tr>
                                         </thead>
@@ -346,7 +341,7 @@
                                                 <td>
                                                     {{ $detail['day'] }}
                                                     @if($detail['is_weekend'])
-                                                        <span class="badge badge-primary badge-sm">Weekend</span>
+                                                        <span class="badge badge-primary badge-sm">Hari Libur</span>
                                                     @endif
                                                     @if($detail['is_holiday'])
                                                         <span class="badge badge-danger badge-sm">Libur</span>
@@ -357,23 +352,18 @@
                                                         {{ $detail['prediction'] }} orang
                                                     </span>
                                                 </td>
-                                                <td><small>{{ $detail['range'] }}</small></td>
-                                                <td>{{ $detail['kasir'] }}</td>
                                                 <td>Rp {{ number_format($detail['revenue'] / 1000) }}K</td>
                                             </tr>
                                             @endforeach
                                             <tr class="bg-info text-white">
                                                 <td colspan="2"><strong>Total Minggu</strong></td>
-                                                <td colspan="3">
+                                                <td colspan="2">
                                                     <strong>{{ array_sum(array_column($forecast_details, 'prediction')) }} orang</strong> |
                                                     <strong>Rp {{ number_format(array_sum(array_column($forecast_details, 'revenue')) / 1000000, 1) }} Jt</strong>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                </div>
-                                <div class="p-3 bg-light">
-                                    <small class="text-muted">* Kebutuhan kasir: 1 kasir per 25 pengunjung per shift</small>
                                 </div>
                             </div>
                         </div>
@@ -432,7 +422,7 @@
                             pointBackgroundColor: '#34395e'
                         },
                         {
-                            label: 'Weekend',
+                            label: 'Hari Libur',
                             data: trendData.length > 0 ? trendData.map(item => item.weekend) : [0, 0, 0, 0, 0, 0],
                             borderColor: '#6777ef',
                             backgroundColor: 'rgba(103, 119, 239, 0.1)',
@@ -442,7 +432,7 @@
                             pointRadius: 4
                         },
                         {
-                            label: 'Weekday',
+                            label: 'Hari Biasa',
                             data: trendData.length > 0 ? trendData.map(item => item.weekday) : [0, 0, 0, 0, 0, 0],
                             borderColor: '#48c78e',
                             backgroundColor: 'rgba(72, 199, 142, 0.1)',
@@ -597,7 +587,7 @@
                             labels: data.map(h => h.name),
                             datasets: [
                                 {
-                                    label: 'Rata-rata Normal (Weekday)',
+                                    label: 'Rata-rata Normal (Hari Biasa)',
                                     data: data.map(h => h.normal),
                                     backgroundColor: 'rgba(200, 200, 200, 0.5)',
                                     borderColor: 'rgba(150, 150, 150, 1)',
@@ -678,37 +668,17 @@
                     labels: forecastData.length > 0 ? forecastData.map(f => f.day) : ['Hari 1', 'Hari 2', 'Hari 3', 'Hari 4', 'Hari 5', 'Hari 6', 'Hari 7'],
                     datasets: [
                         {
-                            label: 'Upper Bound (97.5%)',
-                            data: forecastData.length > 0 ? forecastData.map(f => f.upper) : [0, 0, 0, 0, 0, 0, 0],
-                            borderColor: 'rgba(200, 200, 200, 0.3)',
-                            backgroundColor: 'rgba(200, 200, 200, 0.1)',
-                            borderWidth: 1,
-                            fill: '+1',
-                            tension: 0.4,
-                            pointRadius: 0
-                        },
-                        {
-                            label: 'Prediksi',
+                            label: 'Prediksi Pengunjung',
                             data: forecastData.length > 0 ? forecastData.map(f => f.prediction) : [0, 0, 0, 0, 0, 0, 0],
                             borderColor: '#4885ed',
                             backgroundColor: 'rgba(72, 133, 237, 0.1)',
                             borderWidth: 3,
-                            fill: false,
+                            fill: true,
                             tension: 0.4,
-                            pointRadius: 5,
+                            pointRadius: 6,
                             pointBackgroundColor: forecastData.length > 0 ? forecastData.map(f => f.is_weekend || f.is_holiday ? '#4885ed' : '#48c78e') : '#4885ed',
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2
-                        },
-                        {
-                            label: 'Lower Bound (2.5%)',
-                            data: forecastData.length > 0 ? forecastData.map(f => f.lower) : [0, 0, 0, 0, 0, 0, 0],
-                            borderColor: 'rgba(200, 200, 200, 0.3)',
-                            backgroundColor: 'rgba(200, 200, 200, 0.1)',
-                            borderWidth: 1,
-                            fill: false,
-                            tension: 0.4,
-                            pointRadius: 0
                         }
                     ]
                 },
@@ -791,7 +761,7 @@
                                     pointBackgroundColor: '#34395e'
                                 },
                                 {
-                                    label: 'Weekend',
+                                    label: 'Hari Libur',
                                     data: data.map(item => item.weekend),
                                     borderColor: '#6777ef',
                                     backgroundColor: 'rgba(103, 119, 239, 0.1)',
@@ -801,7 +771,7 @@
                                     pointRadius: 4
                                 },
                                 {
-                                    label: 'Weekday',
+                                    label: 'Hari Biasa',
                                     data: data.map(item => item.weekday),
                                     borderColor: '#48c78e',
                                     backgroundColor: 'rgba(72, 199, 142, 0.1)',
@@ -854,19 +824,24 @@
             let insightHtml = '<strong><i class=\"fas fa-chart-line\"></i> Insight:</strong> ';
 
             if (data.length > 0) {
-                const maxData = data.reduce((max, item) => item.total > max.total ? item : max, data[0]);
-                const totalVisitors = data.reduce((sum, item) => sum + item.total, 0);
+                const maxData = data.reduce((max, item) => {
+                    const total = parseInt(item.total) || 0;
+                    const maxTotal = parseInt(max.total) || 0;
+                    return total > maxTotal ? item : max;
+                }, data[0]);
+
+                const totalVisitors = data.reduce((sum, item) => sum + (parseInt(item.total) || 0), 0);
                 const avgVisitors = Math.round(totalVisitors / data.length);
 
                 if (period === '6_months') {
-                    insightHtml += `Puncak pengunjung terjadi di <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per bulan.`;
+                    insightHtml += `Puncak pengunjung terjadi di <strong>${maxData.label}</strong> dengan ${parseInt(maxData.total).toLocaleString('id-ID')} pengunjung. `;
+                    insightHtml += `Rata-rata ${avgVisitors} pengunjung per bulan.`;
                 } else if (period === '1_month_weekly') {
-                    insightHtml += `Minggu tersibuk adalah <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per minggu.`;
+                    insightHtml += `Minggu tersibuk adalah <strong>${maxData.label}</strong> dengan ${parseInt(maxData.total).toLocaleString('id-ID')} pengunjung. `;
+                    insightHtml += `Rata-rata ${avgVisitors} pengunjung per minggu.`;
                 } else if (period === 'daily') {
-                    insightHtml += `Hari tersibuk adalah <strong>${maxData.label}</strong> dengan ${maxData.total.toLocaleString()} pengunjung. `;
-                    insightHtml += `Rata-rata ${avgVisitors.toLocaleString()} pengunjung per hari.`;
+                    insightHtml += `Hari tersibuk adalah <strong>${maxData.label}</strong> dengan ${parseInt(maxData.total).toLocaleString('id-ID')} pengunjung. `;
+                    insightHtml += `Rata-rata ${avgVisitors} pengunjung per hari.`;
                 }
             }
 
