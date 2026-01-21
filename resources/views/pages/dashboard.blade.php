@@ -313,9 +313,9 @@
                                 <div class="chart-container">
                                     <canvas id="forecastChart"></canvas>
                                 </div>
-                                <div class="alert alert-warning mt-3 mb-0">
-                                    <strong><i class="fas fa-info-circle"></i> Interpretasi:</strong>
-                                    Area abu-gray menunjukkan range kemungkinan (CI 95%). Hari libur diprediksi 14-14 pengunjung.
+                                <div class="alert alert-info mt-3 mb-0">
+                                    <strong><i class="fas fa-lightbulb"></i> Tips:</strong>
+                                    Prediksi ini membantu Anda mempersiapkan stok tiket dan kebutuhan operasional harian. Hari libur umumnya lebih ramai dari hari biasa.
                                 </div>
                             </div>
                         </div>

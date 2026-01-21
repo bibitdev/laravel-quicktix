@@ -25,12 +25,13 @@ class TransactionController extends Controller
             $startDate = Carbon::parse($request->start_date)->startOfDay();
             $endDate = Carbon::parse($request->end_date)->endOfDay();
 
-            $query->whereBetween('created_at', [$startDate, $endDate]);
+            $query->whereBetween('transaction_time', [$startDate, $endDate]);
         }
 
-        $transactions = $query->orderBy('created_at', 'desc')->get();
 
-        $recap = Transaction::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as total_transactions, SUM(amount) as total_amount")
+        $transactions = $query->orderBy('transaction_time', 'desc')->get();
+
+        $recap = Transaction::selectRaw("DATE_FORMAT(transaction_time, '%Y-%m') as month, COUNT(*) as total_transactions, SUM(amount) as total_amount")
             ->groupBy('month')
             ->orderByDesc('month')
             ->get();
