@@ -29,6 +29,11 @@
             </li>
 
             <li class="nav-item ">
+                <a href="{{ route('holidays.index') }}" class="nav-link "><i class="fas fa-calendar-alt"></i>
+                    <span>Hari Libur</span></a>
+            </li>
+
+            <li class="nav-item ">
                 <a href="{{ route('transaksi.index') }}" class="nav-link "><i class="fas fa-columns"></i>
                     <span>Transaksi</span></a>
             </li>

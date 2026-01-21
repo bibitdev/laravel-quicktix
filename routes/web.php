@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\Auth\LoginController;
 
 // Halaman login
@@ -28,12 +29,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('holidays', [HolidayController::class, 'index'])->name('holidays.index');
 
     // --- Admin Only: full CRUD ---
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class)->except(['index']);
         Route::resource('categories', CategoryController::class)->except(['index']);
         Route::resource('products', ProductController::class)->except(['index']);
+        Route::resource('holidays', HolidayController::class)->except(['index']);
     });
 
     // --- Transaksi ---

@@ -503,46 +503,19 @@ class DashboardController extends Controller
 
     private function getAllHolidays()
     {
-        return [
-            // 2025
-            ['name' => 'Tahun Baru Masehi', 'date' => '2025-01-01', 'month' => 1, 'year' => 2025],
-            ['name' => 'Tahun Baru Imlek 2576', 'date' => '2025-01-29', 'month' => 1, 'year' => 2025],
-            ['name' => 'Isra Mikraj', 'date' => '2025-02-27', 'month' => 2, 'year' => 2025],
-            ['name' => 'Hari Suci Nyepi', 'date' => '2025-03-29', 'month' => 3, 'year' => 2025],
-            ['name' => 'Idul Fitri (Hari 1)', 'date' => '2025-03-30', 'month' => 3, 'year' => 2025],
-            ['name' => 'Idul Fitri (Hari 2)', 'date' => '2025-03-31', 'month' => 3, 'year' => 2025],
-            ['name' => 'Wafat Isa Al-Masih', 'date' => '2025-04-18', 'month' => 4, 'year' => 2025],
-            ['name' => 'Hari Buruh', 'date' => '2025-05-01', 'month' => 5, 'year' => 2025],
-            ['name' => 'Hari Raya Waisak', 'date' => '2025-05-12', 'month' => 5, 'year' => 2025],
-            ['name' => 'Kenaikan Isa Al-Masih', 'date' => '2025-05-29', 'month' => 5, 'year' => 2025],
-            ['name' => 'Hari Lahir Pancasila', 'date' => '2025-06-01', 'month' => 6, 'year' => 2025],
-            ['name' => 'Idul Adha', 'date' => '2025-06-06', 'month' => 6, 'year' => 2025],
-            ['name' => 'Tahun Baru Islam 1447 H', 'date' => '2025-06-27', 'month' => 6, 'year' => 2025],
-            ['name' => 'Hari Kemerdekaan RI', 'date' => '2025-08-17', 'month' => 8, 'year' => 2025],
-            ['name' => 'Maulid Nabi Muhammad SAW', 'date' => '2025-09-05', 'month' => 9, 'year' => 2025],
-            ['name' => 'Hari Raya Natal', 'date' => '2025-12-25', 'month' => 12, 'year' => 2025],
-
-            // 2026
-            ['name' => 'Tahun Baru Masehi', 'date' => '2026-01-01', 'month' => 1, 'year' => 2026],
-            ['name' => 'Cuti Bersama Tahun Baru', 'date' => '2026-01-02', 'month' => 1, 'year' => 2026],
-            ['name' => 'Cuti Bersama Imlek', 'date' => '2026-02-16', 'month' => 2, 'year' => 2026],
-            ['name' => 'Tahun Baru Imlek 2577', 'date' => '2026-02-17', 'month' => 2, 'year' => 2026],
-            ['name' => 'Hari Suci Nyepi (Hari 1)', 'date' => '2026-03-18', 'month' => 3, 'year' => 2026],
-            ['name' => 'Hari Suci Nyepi (Hari 2)', 'date' => '2026-03-19', 'month' => 3, 'year' => 2026],
-            ['name' => 'Idul Fitri 1447 H (Hari 1)', 'date' => '2026-03-20', 'month' => 3, 'year' => 2026],
-            ['name' => 'Idul Fitri (Hari 2)', 'date' => '2026-03-21', 'month' => 3, 'year' => 2026],
-            ['name' => 'Cuti Bersama Idul Fitri', 'date' => '2026-03-23', 'month' => 3, 'year' => 2026],
-            ['name' => 'Cuti Bersama Idul Fitri', 'date' => '2026-03-24', 'month' => 3, 'year' => 2026],
-            ['name' => 'Wafat Isa Al-Masih', 'date' => '2026-04-03', 'month' => 4, 'year' => 2026],
-            ['name' => 'Hari Buruh/Waisak', 'date' => '2026-05-01', 'month' => 5, 'year' => 2026],
-            ['name' => 'Kenaikan Isa Al-Masih', 'date' => '2026-05-14', 'month' => 5, 'year' => 2026],
-            ['name' => 'Hari Lahir Pancasila', 'date' => '2026-06-01', 'month' => 6, 'year' => 2026],
-            ['name' => 'Idul Adha 1447 H', 'date' => '2026-06-05', 'month' => 6, 'year' => 2026],
-            ['name' => 'Tahun Baru Islam 1448 H', 'date' => '2026-06-26', 'month' => 6, 'year' => 2026],
-            ['name' => 'Maulid Nabi Muhammad SAW', 'date' => '2026-08-04', 'month' => 8, 'year' => 2026],
-            ['name' => 'Hari Kemerdekaan RI', 'date' => '2026-08-17', 'month' => 8, 'year' => 2026],
-            ['name' => 'Hari Raya Natal', 'date' => '2026-12-25', 'month' => 12, 'year' => 2026],
-        ];
+        // Ambil dari database, bukan hardcode
+        return Holiday::select('name', 'date', DB::raw('MONTH(date) as month'), DB::raw('YEAR(date) as year'))
+            ->orderBy('date')
+            ->get()
+            ->map(function($holiday) {
+                return [
+                    'name' => $holiday->name,
+                    'date' => $holiday->date,
+                    'month' => (int) $holiday->month,
+                    'year' => (int) $holiday->year,
+                ];
+            })
+            ->toArray();
     }
 
     private function getHolidayImpact($month = null, $year = null)
